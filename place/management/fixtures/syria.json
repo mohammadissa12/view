@@ -1,0 +1,61 @@
+{
+  "name": "سوريا",
+  "children": [
+    {
+      "name": "دمشق",
+      "children": []
+    },
+    {
+      "name": "ريف دمشق",
+      "children": []
+    },
+    {
+      "name": "القنيطرة",
+      "children": []
+    },
+    {
+      "name": "درعا",
+      "children": []
+    },
+    {
+      "name": "السويداء",
+      "children": []
+    },
+    {
+      "name": "حمص",
+      "children": []
+    },
+    {
+      "name": "طرطوس",
+      "children": []
+    },
+    {
+      "name": "اللاذقية",
+      "children": []
+    },
+    {
+      "name": "حماة",
+      "children": []
+    },
+    {
+      "name": "إدلب",
+      "children": []
+    },
+    {
+      "name": "حلب",
+      "children": []
+    },
+    {
+      "name": "الرقة",
+      "children": []
+    },
+    {
+      "name": "دير الزور",
+      "children": []
+    },
+    {
+      "name": "الحسكة",
+      "children": []
+    }
+  ]
+}

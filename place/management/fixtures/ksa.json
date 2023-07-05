@@ -1,0 +1,54 @@
+{
+  "name": "المملكة العربية السعودية",
+  "children": [
+    {
+      "name": "الرياض",
+      "children": []
+    },
+    {
+      "name": "مكة المكرمة",
+      "children": []
+    },
+    {
+      "name": "المدينة المنورة",
+      "children": []
+    },
+    {
+      "name": "القصيم",
+      "children": []
+    },
+    {
+      "name": "الشرقية.",
+      "children": []
+    },
+    {
+      "name": "عسير",
+      "children": []
+    },
+    {
+      "name": "تبوك",
+      "children": []
+    },
+    {
+      "name": "حائل",
+      "children": []
+    },
+    {
+      "name": "الحدود الشمالية",
+      "children": []
+    },
+    {
+      "name": "جازان",
+      "children": []
+    },
+    {
+      "name": "نجران",
+      "children": []
+    },
+    {
+      "name": "الباحة",
+      "children": []
+    }
+
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "name": "مصر",
+  "children": [
+    {
+      "name": "الإسكندرية",
+      "children": []
+    },
+    {
+      "name": "الإسماعيلية",
+      "children": []
+    },
+    {
+      "name": "أسوان",
+      "children": []
+    },
+    {
+      "name": "أسيوط",
+      "children": []
+    },
+    {
+      "name": "الأقصر",
+      "children": []
+    },
+    {
+      "name": "البحر الأحمر",
+      "children": []
+    },
+    {
+      "name": "البحيرة",
+      "children": []
+    },
+    {
+      "name": "بني سويف",
+      "children": []
+    },
+    {
+      "name": "بورسعيد",
+      "children": []
+    },
+    {
+      "name": "جنوب سيناء",
+      "children": []
+    },
+    {
+      "name": "الجيزة",
+      "children": []
+    },
+    {
+      "name": "الدقهلية",
+      "children": []
+    },
+    {
+      "name": "دمياط",
+      "children": []
+    },
+    {
+      "name": "سوهاج",
+      "children": []
+    },
+    {
+      "name": "الشرقية",
+      "children": []
+    },
+    {
+      "name": "السويس",
+      "children": []
+    },
+    {
+      "name": "شمال سيناء",
+      "children": []
+    },
+    {
+      "name": "الغربية",
+      "children": []
+    },
+    {
+      "name": "الفيوم",
+      "children": []
+    },
+    {
+      "name": "القاهرة",
+      "children": []
+    },
+    {
+      "name": "القليوبية",
+      "children": []
+    },
+    {
+      "name": "قنا",
+      "children": []
+    },
+    {
+      "name": "كفر الشيخ",
+      "children": []
+    },
+    {
+      "name": "مطروح",
+      "children": []
+    },
+    {
+      "name": "المنوفية",
+      "children": []
+    },
+    {
+      "name": "المنيا",
+      "children": []
+    },
+    {
+      "name": "الوادي الجديد",
+      "children": []
+    }
+  ]
+}

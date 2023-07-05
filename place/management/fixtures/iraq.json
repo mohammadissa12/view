@@ -1,0 +1,81 @@
+{
+  "name": "العراق",
+  "children": [
+    {
+      "name": "بغداد",
+      "children": []
+    },
+    {
+      "name": "البصرة",
+      "children": []
+    },
+    {
+      "name": "كركوك",
+      "children": []
+    },
+    {
+      "name": "النجف",
+      "children": []
+    },
+    {
+      "name": "كربلاء",
+      "children": []
+    },
+    {
+      "name": "أربيل",
+      "children": []
+    },
+    {
+      "name": "السليمانية",
+      "children": []
+    },
+    {
+      "name": "دهوك",
+      "children": []
+    },
+    {
+      "name": "الأنبار",
+      "children": []
+    },
+    {
+      "name": "بابل",
+      "children": []
+    },
+    {
+      "name": "حلبجة",
+      "children": []
+    },
+    {
+      "name": "القادسية",
+      "children": []
+    },
+    {
+      "name": "ديالى",
+      "children": []
+    },
+    {
+      "name": "ذي قار",
+      "children": []
+    },
+    {
+      "name": "صلاح الدين",
+      "children": []
+    },
+    {
+      "name": "المثنى",
+      "children": []
+    },
+    {
+      "name": "ميسان",
+      "children": []
+    },
+    {
+      "name": "نينوى",
+      "children": []
+    },
+    {
+      "name": "واسط",
+      "children": []
+    }
+  ]
+}

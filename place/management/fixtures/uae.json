@@ -1,0 +1,33 @@
+{
+  "name": "الإمارات العربية المتحدة",
+  "children": [
+    {
+      "name": "دبي",
+      "children": []
+    },
+    {
+      "name": "أبوظبي",
+      "children": []
+    },
+    {
+      "name": "الشارقة",
+      "children": []
+    },
+    {
+      "name": "العين",
+      "children": []
+    },
+    {
+      "name": "عجمان",
+      "children": []
+    },
+    {
+      "name": "رأس الخيمة",
+      "children": []
+    },
+    {
+      "name": "الفجيرة",
+      "children": []
+    }
+  ]
+}

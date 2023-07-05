@@ -1,0 +1,129 @@
+{
+  "name": "إيران",
+  "children": [
+    {
+      "name": "ألبرز",
+      "children": []
+    },
+    {
+      "name": "أردبيل",
+      "children": []
+    },
+    {
+      "name": "أذربيجان الشرقية",
+      "children": []
+    },
+    {
+      "name": "أذربيجان الغربية",
+      "children": []
+    },
+    {
+      "name": "بوشهر",
+      "children": []
+    },
+    {
+      "name": "تشهارمحال وبختياري",
+      "children": []
+    },
+    {
+      "name": "فارس",
+      "children": []
+    },
+    {
+      "name": "غيلان",
+      "children": []
+    },
+    {
+      "name": "غلستان",
+      "children": []
+    },
+    {
+      "name": "همدان",
+      "children": []
+    },
+    {
+      "name": "هرمزغان",
+      "children": []
+    },
+    {
+      "name": "عيلام",
+      "children": []
+    },
+    {
+      "name": "أصفهان",
+      "children": []
+    },
+    {
+      "name": "كرمان",
+      "children": []
+    },
+    {
+      "name": "كرمانشاه",
+      "children": []
+    },
+    {
+      "name": "خراسان الشمالية",
+      "children": []
+    },
+    {
+      "name": "خراسان الرضوية",
+      "children": []
+    },
+    {
+      "name": "خراسان الجنوبية",
+      "children": []
+    },
+    {
+      "name": "محافظة خوزستان",
+      "children": []
+    },
+    {
+      "name": "كهكيلويه وبوير أحمد",
+      "children": []
+    },
+    {
+      "name": "كردستان",
+      "children": []
+    },
+    {
+      "name": "لرستان",
+      "children": []
+    },
+    {
+      "name": "مركزي",
+      "children": []
+    },
+    {
+      "name": "مازندران",
+      "children": []
+    },
+    {
+      "name": "قزوين",
+      "children": []
+    },
+    {
+      "name": "قم",
+      "children": []
+    },
+    {
+      "name": "سمنان",
+      "children": []
+    },
+    {
+      "name": "سيستان وبلوشستان",
+      "children": []
+    },
+    {
+      "name": "يزد",
+      "children": []
+    },
+    {
+      "name": "طهران",
+      "children": []
+    },
+    {
+      "name": "زنجان",
+      "children": []
+    }
+  ]
+}

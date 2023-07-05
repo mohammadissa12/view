@@ -1,0 +1,333 @@
+
+  {
+    "name": "تركيا",
+    "children": [
+
+      {
+        "name": "أديامان",
+        "children": []
+      },
+      {
+        "name": "أفيون",
+        "children": []
+      },
+      {
+        "name": "أغري",
+        "children": []
+      },
+      {
+        "name": "أماسيا",
+        "children": []
+      },
+      {
+        "name": "أضنة",
+        "children": []
+      },
+      {
+        "name": "أنقرة",
+        "children": []
+      },
+      {
+        "name": "أنطاليا",
+        "children": []
+      },
+      {
+        "name": "أرتوين",
+        "children": []
+      },
+      {
+        "name": "أيدين",
+        "children": []
+      },
+      {
+        "name": "بالق أسير",
+        "children": []
+      },
+      {
+        "name": "بيله جك",
+        "children": []
+      },
+      {
+        "name": "بينكل",
+        "children": []
+      },
+      {
+        "name": "بيطليس",
+        "children": []
+      },
+      {
+        "name": "بولو",
+        "children": []
+      },
+      {
+        "name": "بوردور",
+        "children": []
+      },
+      {
+        "name": "بورصة",
+        "children": []
+      },
+      {
+        "name": "جاناكالي",
+        "children": []
+      },
+      {
+        "name": "جانقري",
+        "children": []
+      },
+      {
+        "name": "جوروم",
+        "children": []
+      },
+      {
+        "name": "دنيزلي",
+        "children": []
+      },
+      {
+        "name": "ديار بكر",
+        "children": []
+      },
+      {
+        "name": "أدرنة",
+        "children": []
+      },
+      {
+        "name": "إلازِغ",
+        "children": []
+      },
+      {
+        "name": "أرزينجان",
+        "children": []
+      },
+      {
+        "name": "أرضروم",
+        "children": []
+      },
+      {
+        "name": "أسكي شهر",
+        "children": []
+      },
+      {
+        "name": "غازي عينتاب",
+        "children": []
+      },
+      {
+        "name": "غيرسون",
+        "children": []
+      },
+      {
+        "name": "كوموش خانة",
+        "children": []
+      },
+      {
+        "name": "حقاري",
+        "children": []
+      },
+      {
+        "name": "خطاي",
+        "children": []
+      },
+      {
+        "name": "إسبرطة",
+        "children": []
+      },
+      {
+        "name": "مرسين",
+        "children": []
+      },
+      {
+        "name": "إسطنبول",
+        "children": []
+      },
+      {
+        "name": "إزمير",
+        "children": []
+      },
+      {
+        "name": "كارس",
+        "children": []
+      },
+      {
+        "name": "قسطموني",
+        "children": []
+      },
+      {
+        "name": "قيصرية",
+        "children": []
+      },
+      {
+        "name": "كيركلاريلي",
+        "children": []
+      },
+      {
+        "name": "قرشهر",
+        "children": []
+      },
+      {
+        "name": "قوجه ايلي",
+        "children": []
+      },
+      {
+        "name": "قونية",
+        "children": []
+      },
+      {
+        "name": "كوتاهيا",
+        "children": []
+      },
+      {
+        "name": "ملاطية",
+        "children": []
+      },
+      {
+        "name": "مانيسا",
+        "children": []
+      },
+      {
+        "name": "كارامان",
+        "children": []
+      },
+      {
+        "name": "ماردين",
+        "children": []
+      },
+      {
+        "name": "موغلا",
+        "children": []
+      },
+      {
+        "name": "موس",
+        "children": []
+      },
+      {
+        "name": "نوشهر",
+        "children": []
+      },
+      {
+        "name": "نيدا",
+        "children": []
+      },
+      {
+        "name": "أردو",
+        "children": []
+      },
+      {
+        "name": "ريزا ",
+        "children": []
+      },
+      {
+        "name": "صقاريا",
+        "children": []
+      },
+      {
+        "name": "سامسون",
+        "children": []
+      },
+      {
+        "name": "سيرت",
+        "children": []
+      },
+      {
+        "name": "سينوب",
+        "children": []
+      },
+      {
+        "name": "سيواس",
+        "children": []
+      },
+      {
+        "name": "تكيرطاغ",
+        "children": []
+      },
+      {
+        "name": "توكات",
+        "children": []
+      },
+      {
+        "name": "طرابزون",
+        "children": []
+      },
+      {
+        "name": "تونجلي",
+        "children": []
+      },
+      {
+        "name": "شانلي أورفا",
+        "children": []
+      },
+      {
+        "name": "أوشاك",
+        "children": []
+      },
+      {
+        "name": "وان",
+        "children": []
+      },
+      {
+        "name": "يوزكات",
+        "children": []
+      },
+      {
+        "name": "زونغولداك",
+        "children": []
+      },
+      {
+        "name": "أق سراي",
+        "children": []
+      },
+      {
+        "name": "بايبورت",
+        "children": []
+      },
+      {
+        "name": "قرة مان",
+        "children": []
+      },
+      {
+        "name": "كيرِك قلعة",
+        "children": []
+      },
+      {
+        "name": "باتمان",
+        "children": []
+      },
+      {
+        "name": "شرناق",
+        "children": []
+      },
+      {
+        "name": "بارتين",
+        "children": []
+      },
+      {
+        "name": "أرض خان",
+        "children": []
+      },
+      {
+        "name": "إغدير",
+        "children": []
+      },
+      {
+        "name": "يالوفا",
+        "children": []
+      },
+      {
+        "name": "قرة بوك",
+        "children": []
+      },
+      {
+        "name": "كيليس",
+        "children": []
+      }
+    ,
+      {
+        "name": "عثمانية",
+        "children": []
+      },
+      {
+        "name": "دوزجه",
+        "children": []
+      }
+    ]
+  }
+

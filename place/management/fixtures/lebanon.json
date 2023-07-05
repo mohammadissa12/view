@@ -1,0 +1,37 @@
+{
+  "name": "لبنان",
+  "children": [
+    {
+      "name": "عكار",
+      "children": []
+    },
+    {
+      "name": "بعلبك - الهرمل",
+      "children": []
+    },
+    {
+      "name": "بيروت",
+      "children": []
+    },
+    {
+      "name": "البقاع",
+      "children": []
+    },
+    {
+      "name": "جبل لبنان",
+      "children": []
+    },
+    {
+      "name": "النبطية",
+      "children": []
+    },
+    {
+      "name": "الشمال",
+      "children": []
+    },
+    {
+      "name": "الجنوب",
+      "children": []
+    }
+  ]
+}
