@@ -235,18 +235,3 @@ def get_salon_by_city(request, city_id: UUID4, search=None, per_page: int = 12, 
     return 404, {'message': 'No salon places found.'}
 
 
-@place_controller.get('/review/place', response={
-    200: ReviewSchema,
-    404: MessageOut
-})
-def get_review_by_place(request, place_id: UUID4, per_page: int = 12, page: int = 1):
-    try:
-        place = PlaceMixin.objects.get(id=place_id)
-        if place:
-            reviews = Reviews.objects.filter(place=place)
-            if reviews:
-                return response(status.HTTP_200_OK, reviews, paginated=True, per_page=per_page, page=page)
-            return 404, {'message': 'No reviews found.'}
-        return 404, {'message': 'Place not found.'}
-    except PlaceMixin.DoesNotExist:
-        return 404, {'message': 'Place not found.'}

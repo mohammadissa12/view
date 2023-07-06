@@ -5,9 +5,21 @@ from location_field.models.plain import PlainLocationField
 from conf.utils.models import Entity
 
 
+class SocialMedia(Entity):
+    place = models.OneToOneField('PlaceMixin', on_delete=models.CASCADE)
+    facebook = models.URLField('فيسبوك', null=True, blank=True)
+    instagram = models.URLField('انستجرام', null=True, blank=True)
+    telegram = models.URLField('تليجرام', null=True, blank=True)
+    whatsapp = models.URLField('واتساب', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'وسائل التواصل الاجتماعي'
+        verbose_name_plural = 'وسائل التواصل الاجتماعي'
+
+
 class Images(Entity):
     image = models.ImageField('الصورة', upload_to='images/')
-    place = models.ForeignKey('PlaceMixin', on_delete=models.CASCADE)
+    place = models.ForeignKey('PlaceMixin', on_delete=models.CASCADE, related_name='images')
 
     def __str__(self):
         return f'{self.image}'
@@ -44,10 +56,16 @@ class PlaceMixin(Entity):
     city = models.ForeignKey('location.City', on_delete=models.CASCADE)
     name = models.CharField('الاسم', max_length=50)
     description = models.TextField('الوصف', null=True, blank=True)
+    place_details = models.TextField('تفاصيل المكان', null=True, blank=True)
+    phone_number = models.CharField('رقم الهاتف', max_length=50, null=True, blank=True)
+    short_location = models.CharField('الموقع', max_length=50, null=True, blank=True)
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661')
 
     def average_rating(self) -> float:
         return Reviews.objects.filter(place=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
+
+    def count_reviews(self) -> int:
+        return Reviews.objects.filter(place=self).count()
 
     @property
     def latitude(self):
@@ -61,8 +79,16 @@ class PlaceMixin(Entity):
         return f'{self.name} - {self.city} - {self.latitude} - {self.longitude}'
 
     @property
-    def images(self):
+    def place_images(self):
         return self.images.all()
+
+    @property
+    def reviews(self):
+        return self.reviews.all()
+
+    @property
+    def social_media(self):
+        return self.social_media.all()
 
 
 class Restaurant(PlaceMixin):
@@ -74,10 +100,8 @@ class Restaurant(PlaceMixin):
 class StayPlace(PlaceMixin):
     class StayPlaceType(models.TextChoices):
         Hotel = 'فندق', 'فندق'
-        Resort = 'منتجع', 'منتجع'
-        Motel = 'موتيل', 'موتيل'
-        Hostel = 'نزل', 'نزل'
-        chalet = 'شاليه', 'شاليه'
+        flat = 'شقق', 'شقق'
+        farm = 'مزرعة', 'مزرعة'
 
     type = models.CharField('نوع', choices=StayPlaceType.choices, max_length=50, default=StayPlaceType.Hotel)
 

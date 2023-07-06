@@ -10,19 +10,23 @@ from .models import (
     Salons,
     TouristPlace,
     Images,
-    Reviews,
     Gym,
     HolyPlace,
     Financial,
     GasStation,
-    Entertainment, PlaceMixin,
-    Reviews
+    Entertainment,
+    Reviews,
+    SocialMedia,
 )
 
 
 class PlaceMixinInline(admin.TabularInline):
     extra = 1
     inlines = []
+
+
+class ContactInline(PlaceMixinInline):
+    model = SocialMedia
 
 
 class ImageInline(PlaceMixinInline):
@@ -81,13 +85,11 @@ class EntertainmentInline(PlaceMixinInline):
     model = Entertainment
 
 
-@admin.register(StayPlace)
-class StayPlaceAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-
-    list_display = ['name', 'city', 'country_name', 'type', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name', 'type']
-    list_filter = ['city', 'city__country__country_name', 'type', ]
+class BaseModelAdmin(admin.ModelAdmin):
+    inlines = [ImageInline, ContactInline, ReviewsInline]
+    list_display = ['name', 'city', 'country_name', 'average_rating', 'count_reviews']
+    search_fields = ['name', 'city__city_name', 'city__country__country_name']
+    list_filter = ['city', 'city__country__country_name']
 
     def country_name(self, obj):
         return obj.city.country.country_name
@@ -95,197 +97,69 @@ class StayPlaceAdmin(admin.ModelAdmin):
     def average_rating(self, obj):
         return obj.average_rating()
 
+    def count_reviews(self, obj):
+        return obj.count_reviews()
+
     country_name.short_description = 'الدولة'
     average_rating.short_description = 'متوسط التقييم'
+    count_reviews.short_description = 'عدد التقييمات'
+
+
+@admin.register(StayPlace)
+class StayPlaceAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(Restaurant)
-class RestaurantAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-
-    list_display = ['name', 'city', 'country_name', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name']
-    list_filter = ['city', 'city__country__country_name']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class RestaurantAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(Cafeteria)
-class CafeteriaAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-
-    list_display = ['name', 'city', 'country_name', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name']
-    list_filter = ['city', 'city__country__country_name']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class CafeteriaAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(Mall)
-class MallAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name']
-    list_filter = ['city', 'city__country__country_name']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class MallAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(HealthCentre)
-class HealthCentreAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'type', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name', 'type']
-    list_filter = ['city', 'city__country__country_name', 'type']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class HealthCentreAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(Salons)
-class SalonsAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'type', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name', 'type']
-    list_filter = ['city', 'city__country__country_name', 'type']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class SalonsAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(TouristPlace)
-class TouristPlaceAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'type', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name', 'type']
-    list_filter = ['city', 'city__country__country_name', 'type']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class TouristPlaceAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(Gym)
-class GymAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name']
-    list_filter = ['city', 'city__country__country_name']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class GymAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(HolyPlace)
-class HolyPlaceAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'type', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name', 'type']
-    list_filter = ['city', 'city__country__country_name', 'type']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class HolyPlaceAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(Financial)
-class FinancialAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'type', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name', 'type']
-    list_filter = ['city', 'city__country__country_name', 'type']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class FinancialAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(GasStation)
-class GasStationAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name']
-    list_filter = ['city', 'city__country__country_name']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
+class GasStationAdmin(BaseModelAdmin):
+    pass
 
 
 @admin.register(Entertainment)
-class EntertainmentAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'average_rating']
-    search_fields = ['name', 'city__city_name', 'city__country__country_name']
-    list_filter = ['city', 'city__country__country_name']
-
-    def country_name(self, obj):
-        return obj.city.country.country_name
-
-    def average_rating(self, obj):
-        return obj.average_rating()
-
-    country_name.short_description = 'الدولة'
-    average_rating.short_description = 'متوسط التقييم'
-
-
-admin.site.register(Reviews)
+class EntertainmentAdmin(BaseModelAdmin):
+    pass
