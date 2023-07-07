@@ -37,65 +37,15 @@ class PlaceMixinSchema(Schema):
     page_count: int = None
     data: List[PlaceMixinOut]
 
-# class RestaurantOut(PlaceMixinOut):
-#     pass
-#
-#
-# class StayPlaceOut(PlaceMixinOut):
-#     type: str
-#
-#
-# class CafeteriaOut(PlaceMixinOut):
-#     pass
-#
-#
-# class TouristPlaceOut(Schema):
-#     type: str
-#
-#
-# class MallOut(PlaceMixinOut):
-#     pass
-#
-#
-# class HealthCentreOut(PlaceMixinOut):
-#     type: str
-#
-#
-# class HolyPlaceOut(PlaceMixinOut):
-#     type: str
-#
-#
-# class FinancialOut(PlaceMixinOut):
-#     type: str
-#
-#
-# class GasStationOut(PlaceMixinOut):
-#     pass
-#
-#
-# class EntertainmentOut(PlaceMixinOut):
-#     pass
-#
-#
-# class GymOut(PlaceMixinOut):
-#     pass
-#
-#
-# class SalonsOut(PlaceMixinOut):
-#     type: str
-#
-#
-# class RestaurantSchema(PlaceMixinSchema):
-#     data: List[RestaurantOut]
-#
-#
-# class StayPlaceSchema(PlaceMixinSchema):
-#     data: List[StayPlaceOut]
-#
-#
-# class CafeteriaSchema(PlaceMixinSchema):
-#     data: List[CafeteriaOut]
-#
-#
-# class TouristPlaceSchema(PlaceMixinSchema):
-#     data: List[TouristPlaceOut]
+
+# class AdvertisementOut(Schema):
+#     id: UUID4
+#     title: Optional[str]
+#     description: Optional[str]
+#     image: Optional[str]
+#     link: Optional[str]
+#     place: Optional[PlaceMixinOut]
+#     location: Optional[str]
+#     start_date: Optional[str]
+#     end_date: Optional[str]
+#     is_active: bool

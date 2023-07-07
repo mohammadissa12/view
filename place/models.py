@@ -1,6 +1,12 @@
+from datetime import date
+from django.db.models.signals import pre_save, post_save
+from django.dispatch import receiver
 from PIL.Image import Image
 from django.db import models
+from django.utils import timezone
 from location_field.models.plain import PlainLocationField
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 from conf.utils.models import Entity
 
@@ -11,6 +17,7 @@ class SocialMedia(Entity):
     instagram = models.URLField('انستجرام', null=True, blank=True)
     telegram = models.URLField('تليجرام', null=True, blank=True)
     whatsapp = models.URLField('واتساب', null=True, blank=True)
+    is_available = models.BooleanField('متاح', default=True)
 
     class Meta:
         verbose_name = 'وسائل التواصل الاجتماعي'
@@ -211,3 +218,29 @@ class Salons(PlaceMixin):
     class Meta:
         verbose_name = 'حلاقة وصالون'
         verbose_name_plural = 'حلاقة وصالونات'
+
+
+# class Advertisement(models.Model):
+#     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+#     object_id = models.UUIDField()
+#     place = GenericForeignKey('content_type', 'object_id')
+#     country = models.ForeignKey('location.Country', on_delete=models.CASCADE, related_name='ads', null=True, blank=True)
+#     city = models.ForeignKey('location.City', on_delete=models.CASCADE, related_name='ads', null=True, blank=True)
+#
+#     title = models.CharField('العنوان', max_length=50, null=True, blank=True)
+#     description = models.TextField('الوصف', null=True, blank=True)
+#     image = models.ImageField('الصورة', upload_to='ads')
+#     link = models.URLField('الرابط', null=True, blank=True)
+#     location = PlainLocationField(based_fields=['place'], zoom=7, null=True, blank=True)
+#     start_date = models.DateField('تاريخ البداية', null=True, blank=True)
+#     end_date = models.DateField('تاريخ النهاية', null=True, blank=True)
+#     is_active = models.BooleanField('مفعل', default=False)
+#
+#     def __str__(self):
+#         return f'{self.title} '
+#
+#
+# @receiver(pre_save, sender=Advertisement)
+# def set_active(sender, instance, **kwargs):
+#     if instance.end_date < date.today():
+#         instance.is_active = False

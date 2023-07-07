@@ -235,3 +235,4 @@ def get_salon_by_city(request, city_id: UUID4, search=None, per_page: int = 12, 
     return 404, {'message': 'No salon places found.'}
 
 
+

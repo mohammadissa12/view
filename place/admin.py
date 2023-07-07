@@ -17,6 +17,7 @@ from .models import (
     Entertainment,
     Reviews,
     SocialMedia,
+    # Advertisement,
 )
 
 
@@ -163,3 +164,8 @@ class GasStationAdmin(BaseModelAdmin):
 @admin.register(Entertainment)
 class EntertainmentAdmin(BaseModelAdmin):
     pass
+
+
+# @admin.register(Advertisement)
+# class AdvertisementAdmin(NestedModelAdmin):
+#     list_display = ['title', 'place', 'start_date', 'end_date', 'is_active']
