@@ -50,4 +50,11 @@ class CityAdmin(admin.ModelAdmin):
 
     country.admin_order_field = 'country'
 
+    def get_inline_instances(self, request, obj=None):
+        if obj is None:
+            # Return empty list when creating a new city
+            return []
+        return super().get_inline_instances(request, obj)
+
+
 

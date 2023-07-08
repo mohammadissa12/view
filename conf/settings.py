@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'account',
     'place',
     'location',
-    'corsheaders',
     'location_field.apps.DefaultConfig',
 
 ]
@@ -55,7 +54,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'silk.middleware.SilkyMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'conf.urls'
