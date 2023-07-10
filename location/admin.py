@@ -3,8 +3,57 @@ from django.contrib.admin import RelatedOnlyFieldListFilter
 
 # Register your models here.
 from location.models import Country, City
-from place.admin import StayPlaceInline, RestaurantInline, CafeteriaInline, MallInline, HealthCentreInline, SalonsInline, \
-    HolyPlaceInline, EntertainmentInline, TouristPlaceInline, FinancialInline, GasStationInline, GymInline
+from place.admin import PlaceMixinInline
+from place.models import StayPlace, Restaurant, Cafeteria, Mall, HealthCentre, Salons, TouristPlace, Gym, HolyPlace, \
+    Financial, GasStation, Entertainment
+
+
+class StayPlaceInline(PlaceMixinInline):
+    model = StayPlace
+
+
+class RestaurantInline(PlaceMixinInline):
+    model = Restaurant
+
+
+class CafeteriaInline(PlaceMixinInline):
+    model = Cafeteria
+
+
+class MallInline(PlaceMixinInline):
+    model = Mall
+
+
+class HealthCentreInline(PlaceMixinInline):
+    model = HealthCentre
+
+
+class SalonsInline(PlaceMixinInline):
+    model = Salons
+
+
+class TouristPlaceInline(PlaceMixinInline):
+    model = TouristPlace
+
+
+class GymInline(PlaceMixinInline):
+    model = Gym
+
+
+class HolyPlaceInline(PlaceMixinInline):
+    model = HolyPlace
+
+
+class FinancialInline(PlaceMixinInline):
+    model = Financial
+
+
+class GasStationInline(PlaceMixinInline):
+    model = GasStation
+
+
+class EntertainmentInline(PlaceMixinInline):
+    model = Entertainment
 
 
 class CityInline(admin.TabularInline):
@@ -55,6 +104,3 @@ class CityAdmin(admin.ModelAdmin):
             # Return empty list when creating a new city
             return []
         return super().get_inline_instances(request, obj)
-
-
-

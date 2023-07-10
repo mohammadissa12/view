@@ -235,4 +235,51 @@ def get_salon_by_city(request, city_id: UUID4, search=None, per_page: int = 12, 
     return 404, {'message': 'No salon places found.'}
 
 
+advertisement_controller = Router(tags=['Advertisement'])
+
+
+@advertisement_controller.get('/advertisement', response={
+    200: List[AdvertisementSchema],
+    404: MessageOut
+})
+def get_advertisement_by_country(request, country_id: UUID4, ):
+    advertisement = Advertisement.objects.filter(country_id=country_id)
+    if advertisement:
+        return response(status.HTTP_200_OK, advertisement)
+    return 404, {'message': 'No advertisement found.'}
+
+
+@advertisement_controller.get('/advertisement/content_type/{model}', response={
+    200: List[AdvertisementSchema],
+    404: MessageOut
+})
+def get_advertisement_by_content_type(request, model: str):
+    try:
+        content_type = ContentType.objects.get(model=model)
+    except ContentType.DoesNotExist:
+        return 404, {'message': 'Content type not found.'}
+
+    advertisements = Advertisement.objects.filter(content_type=content_type)
+    if advertisements:
+        return response(status.HTTP_200_OK, advertisements)
+    return 404, {'message': 'No advertisement found for the specified content type.'}
+
+
+RecommendedPlaces_controller = Router(tags=['Recommended Places'])
+
+
+@RecommendedPlaces_controller.get('/recommended-places', response={
+    200: List[RecommendedPlacesOut],
+    404: MessageOut
+})
+def get_recommended_places_by_country(request, country_id: UUID4):
+    recommended_places = RecommendedPlaces.objects.filter(country_id=country_id)
+    if recommended_places:
+        return response(status.HTTP_200_OK, recommended_places)
+    return 404, {'message': 'No recommended places found.'}
+
+
+
+
+
 

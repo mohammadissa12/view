@@ -1,9 +1,11 @@
+from datetime import date
+
 from ninja import Schema
-from pydantic import UUID4
+from pydantic import UUID4, Field, BaseModel
 from typing import List, Optional
 
 from account.schemas import Profile
-from location.schemas import CityOut
+from location.schemas import CityOut, CountryOut
 
 
 class ProductImageOut(Schema):
@@ -38,14 +40,30 @@ class PlaceMixinSchema(Schema):
     data: List[PlaceMixinOut]
 
 
-# class AdvertisementOut(Schema):
-#     id: UUID4
-#     title: Optional[str]
-#     description: Optional[str]
-#     image: Optional[str]
-#     link: Optional[str]
-#     place: Optional[PlaceMixinOut]
-#     location: Optional[str]
-#     start_date: Optional[str]
-#     end_date: Optional[str]
-#     is_active: bool
+class ContentTypeOut(Schema):
+    app_label: str
+    model: str
+
+    class Config:
+        orm_mode = True
+
+
+class AdvertisementSchema(Schema):
+    id: UUID4
+    country: CountryOut
+    content_type: ContentTypeOut = None
+    image: str
+    title: str
+    short_description: str
+    url: str = None
+    place: PlaceMixinOut = None
+    start_date: date
+    end_date: date
+    is_active: bool
+
+
+class RecommendedPlacesOut(Schema):
+    id: UUID4
+    country: CountryOut
+    place: PlaceMixinOut
+

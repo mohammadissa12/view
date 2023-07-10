@@ -1,6 +1,8 @@
 from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
 from nested_inline.admin import NestedModelAdmin
 
+from location.models import Country
 from .models import (
     StayPlace,
     Restaurant,
@@ -16,7 +18,7 @@ from .models import (
     GasStation,
     Entertainment,
     Reviews,
-    SocialMedia, Advertisement,
+    SocialMedia, Advertisement, RecommendedPlaces, LatestPlaces
 )
 
 
@@ -25,7 +27,7 @@ class PlaceMixinInline(admin.TabularInline):
     inlines = []
 
 
-class ContactInline(PlaceMixinInline):
+class SocialMediaInline(PlaceMixinInline):
     model = SocialMedia
 
 
@@ -37,56 +39,8 @@ class ReviewsInline(PlaceMixinInline):
     model = Reviews
 
 
-class StayPlaceInline(PlaceMixinInline):
-    model = StayPlace
-
-
-class RestaurantInline(PlaceMixinInline):
-    model = Restaurant
-
-
-class CafeteriaInline(PlaceMixinInline):
-    model = Cafeteria
-
-
-class MallInline(PlaceMixinInline):
-    model = Mall
-
-
-class HealthCentreInline(PlaceMixinInline):
-    model = HealthCentre
-
-
-class SalonsInline(PlaceMixinInline):
-    model = Salons
-
-
-class TouristPlaceInline(PlaceMixinInline):
-    model = TouristPlace
-
-
-class GymInline(PlaceMixinInline):
-    model = Gym
-
-
-class HolyPlaceInline(PlaceMixinInline):
-    model = HolyPlace
-
-
-class FinancialInline(PlaceMixinInline):
-    model = Financial
-
-
-class GasStationInline(PlaceMixinInline):
-    model = GasStation
-
-
-class EntertainmentInline(PlaceMixinInline):
-    model = Entertainment
-
-
 class BaseModelAdmin(admin.ModelAdmin):
-    inlines = [ImageInline, ContactInline, ReviewsInline]
+    inlines = [ImageInline, SocialMediaInline, ReviewsInline]
     list_display = ['name', 'city', 'country_name', 'average_rating', 'count_reviews']
     search_fields = ['name', 'city__city_name', 'city__country__country_name']
     list_filter = ['city', 'city__country__country_name']
@@ -95,10 +49,10 @@ class BaseModelAdmin(admin.ModelAdmin):
         return obj.city.country.country_name
 
     def average_rating(self, obj):
-        return obj.average_rating()
+        return obj.get_average_rating()
 
     def count_reviews(self, obj):
-        return obj.count_reviews()
+        return obj.get_review_count()
 
     country_name.short_description = 'الدولة'
     average_rating.short_description = 'متوسط التقييم'
@@ -165,6 +119,38 @@ class EntertainmentAdmin(BaseModelAdmin):
     pass
 
 
-@admin.register(Advertisement)
-class AdvertisementAdmin(NestedModelAdmin):
-    list_display = ['title', 'place', 'start_date', 'end_date', 'is_active']
+class CountryFilter(admin.SimpleListFilter):
+    title = 'Country'
+    parameter_name = 'country'
+
+    def lookups(self, request, model_admin):
+        countries = Country.objects.all()
+        return [(country.id, country.country_name) for country in countries]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(country__id=self.value())
+        else:
+            return queryset
+
+
+class AdvertisementAdmin(admin.ModelAdmin):
+    list_display = ['country', 'title', 'content_type', 'start_date', 'end_date', 'is_active']
+    list_filter = [CountryFilter, 'is_active']
+    # Specify the fields to be displayed in the change form
+    fields = ['country', 'content_type', 'place','title', 'image', 'short_description', 'url', 'start_date', 'end_date',
+              'is_active']
+
+    # Override the formfield_for_foreignkey method
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'content_type':
+            kwargs['queryset'] = ContentType.objects.filter(model__in=['restaurant', 'cafeteria', 'mall',
+                                                                       'healthcentre', 'salons', 'touristplace',
+                                                                       'gym', 'holyplace', 'financial', 'gasstation',
+                                                                       'entertainment', 'stayplace'])
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+admin.site.register(Advertisement, AdvertisementAdmin)
+admin.site.register(LatestPlaces)
+admin.site.register(RecommendedPlaces)
