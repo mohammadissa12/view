@@ -1,68 +1,65 @@
 from datetime import date
 from typing import List
 
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models.signals import pre_save, post_save
+from django.contrib.auth import get_user_model
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from PIL.Image import Image
+from PIL import Image
 from django.db import models
-from django.utils import timezone
 from location_field.models.plain import PlainLocationField
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 
 from conf.utils.models import Entity
 
-
-class SocialMedia(Entity):
-    place = models.OneToOneField('PlaceMixin', on_delete=models.CASCADE)
-    facebook = models.URLField('فيسبوك', null=True, blank=True)
-    instagram = models.URLField('انستجرام', null=True, blank=True)
-    telegram = models.URLField('تليجرام', null=True, blank=True)
-    whatsapp = models.URLField('واتساب', null=True, blank=True)
-    is_available = models.BooleanField('متاح', default=True)
-
-    class Meta:
-        verbose_name = 'وسائل التواصل الاجتماعي'
-        verbose_name_plural = 'وسائل التواصل الاجتماعي'
-
-
-class Images(Entity):
-    image = models.ImageField('الصورة', upload_to='images/')
-    place = models.ForeignKey('PlaceMixin', on_delete=models.CASCADE, related_name='images')
-
-    def __str__(self):
-        return f'{self.image}'
-
-    class Meta:
-        verbose_name = 'صورة'
-        verbose_name_plural = 'صور'
-
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        # img = Image.open(self.image.path)
-        # if img.height > 500 or img.width > 500:
-        #     output_size = (500, 500)
-        #     img.thumbnail(output_size)
-        #     img.save(self.image.path)
-
-
-class Reviews(Entity):
-    user = models.ForeignKey('account.ProfileUser', on_delete=models.CASCADE)
-    place = models.ForeignKey('PlaceMixin', on_delete=models.CASCADE)
-    comment = models.TextField('التعليق', null=True, blank=True)
-    rating = models.IntegerField('التقييم', default=0)
-
-    def __str__(self):
-        return f'{self.user} - {self.place}'
-
-    class Meta:
-        verbose_name = 'تعليق'
-        verbose_name_plural = 'تعليقات'
+User = get_user_model()
 
 
 class PlaceMixin(Entity):
+    PLACE_TYPE_CHOICES = [
+        ('gas_station', 'محطة وقود'),
+        ('entertainment', 'ترفيه'),
+        ('gym', 'نادي رياضي'),
+        ('restaurant', 'مطعم'),
+        ('cafe', 'مقهى'),
+        ('mall', 'مجمع تجاري'),
+
+        ('stay_place', [
+            ('hotel', 'فندق'),
+            ('flat', 'شقق'),
+            ('farm', 'مزرعة'),
+        ]),
+
+        ('health_centre',
+         [
+             ('hospital', 'مستشفى'),
+             ('clinic', 'عيادة'),
+             ('pharmacy', 'صيدلية'),
+         ]),
+
+        ('salon', [
+            ('men_salon', 'صالون رجالي'),
+            ('women_salon', 'صالون نسائي'),
+        ]),
+        ('tourist_place', [
+            ('MUSEUM', 'متحف'),
+            ('PARK', 'حديقة'),
+            ('HISTORICAL_PLACE', 'مكان تاريخي'),
+            ('waterfall', 'شلال'),
+        ]),
+        ('holy_place', [
+            ('MOSQUE', 'مسجد'),
+            ('CHURCH', 'كنيسة'),
+            ('shrine', 'ضريح'),
+        ]),
+        ('financial_place', [
+            ('BANK', 'بنك'),
+            ('ATM', 'صراف آلي'),
+            ('MONEY_EXCHANGE', 'صرافة'),
+        ]),
+
+    ]
+
+    place_type = models.CharField('نوع المكان', max_length=50, choices=PLACE_TYPE_CHOICES)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE)
     name = models.CharField('الاسم', max_length=50)
     description = models.TextField('الوصف', null=True, blank=True)
@@ -97,154 +94,61 @@ class PlaceMixin(Entity):
         return self.reviews.all()
 
     @property
-    def social_media(self):
-        return self.social_media.all()
+    def place_social_media(self):
+        return f'{self.social_media}'
 
 
-class Restaurant(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='restaurant')
-
-    class Meta:
-        verbose_name = 'مطعم'
-        verbose_name_plural = 'مطاعم'
-
-
-class StayPlace(PlaceMixin):
-    class StayPlaceType(models.TextChoices):
-        Hotel = 'فندق', 'فندق'
-        flat = 'شقق', 'شقق'
-        farm = 'مزرعة', 'مزرعة'
-
-    advertisement = GenericRelation('Advertisement', related_query_name='stay_place')
-    type = models.CharField('نوع', choices=StayPlaceType.choices, max_length=50, default=StayPlaceType.Hotel)
+class SocialMedia(Entity):
+    place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media')
+    facebook = models.URLField('فيسبوك', null=True, blank=True)
+    instagram = models.URLField('انستجرام', null=True, blank=True)
+    telegram = models.URLField('تليجرام', null=True, blank=True)
+    whatsapp = models.URLField('واتساب', null=True, blank=True)
+    is_available = models.BooleanField('متاح', default=True)
 
     class Meta:
-        verbose_name = 'مكان اقامة'
-        verbose_name_plural = 'اماكن اقامة'
+        verbose_name = 'وسائل التواصل الاجتماعي'
+        verbose_name_plural = 'وسائل التواصل الاجتماعي'
 
 
-class Cafeteria(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='cafeteria')
+class Images(Entity):
+    image = models.ImageField('الصورة', upload_to='images/')
+    place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, related_name='images')
 
-    class Meta:
-        verbose_name = 'كافيه'
-        verbose_name_plural = 'كافيهات'
-
-
-class TouristPlace(PlaceMixin):
-    CHOICES = (
-        (
-            ('اماكن سياحية', (
-                ('مصيف', 'مصيف'),
-                ('متحف', 'متحف'),
-                ('شلال', 'شلال'),
-            )),
-            ('اماكن عامة', (
-                ('منتزه', 'منتزه'),
-                ('متحف', 'متحف'),
-                ('معلم حضاري', 'معلم حضاري'),
-            )),
-        ))
-
-    advertisement = GenericRelation('Advertisement', related_query_name='tourist_place')
-    type = models.CharField('نوع المكان', choices=CHOICES, max_length=50, )
+    def __str__(self):
+        return f'{self.image}'
 
     class Meta:
-        verbose_name = 'مكان سياحي'
-        verbose_name_plural = 'أماكن سياحية'
+        verbose_name = 'صورة'
+        verbose_name_plural = 'صور'
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        img = Image.open(self.image.path)
+        if img.height > 500 or img.width > 500:
+            output_size = (500, 500)
+            img.thumbnail(output_size)
+            img.save(self.image.path)
 
 
-class Mall(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='mall')
+class Reviews(Entity):
+    user = models.ForeignKey('account.EmailAccount', on_delete=models.CASCADE)
+    place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE)
+    comment = models.TextField('التعليق', null=True, blank=True)
+    rating = models.IntegerField('التقييم', default=0)
 
-    class Meta:
-        verbose_name = 'مول'
-        verbose_name_plural = 'مولات'
-
-
-class HealthCentre(PlaceMixin):
-    class HealthCentreType(models.TextChoices):
-        Hospital = 'مستشفى', 'مستشفى'
-        Clinic = 'عيادة', 'عيادة'
-        Pharmacy = 'صيدلية', 'صيدلية'
-
-    advertisement = GenericRelation('Advertisement', related_query_name='health_centre')
-    type = models.CharField('نوع المركز', choices=HealthCentreType.choices, max_length=50, )
-
-    class Meta:
-        verbose_name = 'مركز صحي'
-        verbose_name_plural = 'مراكز صحية'
-
-
-class HolyPlace(PlaceMixin):
-    class HolyPlaceType(models.TextChoices):
-        Mosque = 'مسجد', 'مسجد'
-        Church = 'كنيسة', 'كنيسة'
-        Shrine = 'ضريح', 'ضريح'
-
-    advertisement = GenericRelation('Advertisement', related_query_name='holy_place')
-    type = models.CharField('نوع المكان', choices=HolyPlaceType.choices, max_length=50, )
+    def __str__(self):
+        return f'{self.user} - {self.place}'
 
     class Meta:
-        verbose_name = 'مكان مقدس'
-        verbose_name_plural = 'أماكن مقدسة'
-
-
-class Financial(PlaceMixin):
-    class FinancialType(models.TextChoices):
-        Bank = 'بنك', 'بنك'
-        ATM = 'Atm', 'ATM'
-        Exchange = 'صرافة', 'صرافة'
-
-    advertisement = GenericRelation('Advertisement', related_query_name='financial')
-    type = models.CharField('نوع المكان', choices=FinancialType.choices, max_length=50, )
-
-    class Meta:
-        verbose_name = 'الخدمة المالية'
-        verbose_name_plural = 'الخدمات المالية'
-
-
-class GasStation(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='gas_station')
-
-    class Meta:
-        verbose_name = 'محطة وقود'
-        verbose_name_plural = 'محطات وقود'
-
-
-class Entertainment(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='entertainment')
-
-    class Meta:
-        verbose_name = ' مكان ترفيهي'
-        verbose_name_plural = 'اماكن ترفيهية'
-
-
-class Gym(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='gym')
-
-    class Meta:
-        verbose_name = 'مكان رياضي'
-        verbose_name_plural = 'اماكن رياضية'
-
-
-class Salons(PlaceMixin):
-    class SalonType(models.TextChoices):
-        barber = 'حلاق رجالي', 'حلاق رجالي'
-        salon = 'صالون نسائي', 'صالون نسائي'
-
-    advertisement = GenericRelation('Advertisement', related_query_name='salons')
-    type = models.CharField('نوع المكان', choices=SalonType.choices, max_length=50, )
-
-    class Meta:
-        verbose_name = 'حلاقة وصالون'
-        verbose_name_plural = 'حلاقة وصالونات'
+        verbose_name = 'تعليق'
+        verbose_name_plural = 'تعليقات'
 
 
 class Advertisement(Entity):
     country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة', )
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name='المكان', null=True,
-                                     blank=True)
+    place_type = models.CharField(max_length=50, choices=PlaceMixin.PLACE_TYPE_CHOICES, verbose_name='نوع المكان', )
     image = models.ImageField('الصورة', upload_to='advertisements')
     title = models.CharField('العنوان', max_length=50)
     short_description = models.CharField('الوصف المختصر', max_length=100)
@@ -255,7 +159,7 @@ class Advertisement(Entity):
     is_active = models.BooleanField('مفعل', default=False)
 
     def __str__(self):
-        return f'{self.title} {self.content_type.model}'
+        return f'{self.title} '
 
     class Meta:
         verbose_name = 'اعلان'
@@ -266,26 +170,6 @@ class Advertisement(Entity):
 def set_active(sender, instance, **kwargs):
     if instance.end_date < date.today():
         instance.is_active = False
-
-
-# class Comment(Entity):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='المستخدم')
-#     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name='المكان')
-#     text = models.TextField('النص')
-#     rate = models.PositiveSmallIntegerField('التقييم', validators=[MinValueValidator(1), MaxValueValidator(5)])
-#     parent = models.ForeignKey('self', on_delete=models.CASCADE, verbose_name='التعليق الأب', blank=True, null=True)
-#
-#     def __str__(self):
-#         return f'{self.user} - {self.content_type}'
-
-
-# class Like(Entity):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='المستخدم')
-#     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name='المكان')
-#     is_like = models.BooleanField('اعجاب', default=True)
-#
-#     def __str__(self):
-#         return f'{self.user} - {self.content_type}
 
 
 class RecommendedPlaces(Entity):
@@ -302,6 +186,7 @@ class RecommendedPlaces(Entity):
 
 class LatestPlaces(Entity):
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان')
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة', )
 
     def __str__(self):
         return f'{self.place}'
@@ -309,3 +194,16 @@ class LatestPlaces(Entity):
     class Meta:
         verbose_name = 'احدث الاماكن'
         verbose_name_plural = 'احدث الاماكن'
+
+
+class FavoritePlaces(Entity):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_places')
+    place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان',
+                              related_name='favorite_places')
+
+    def __str__(self):
+        return f'{self.user} - {self.place}'
+
+    class Meta:
+        verbose_name = 'مكان مفضل'
+        verbose_name_plural = 'اماكن مفضلة'

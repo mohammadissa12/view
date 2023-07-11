@@ -140,11 +140,4 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 SILKY_PYTHON_PROFILER = True
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_HEADERS = "*"
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://8477-37-238-5-13.ngrok-free.app',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-]
