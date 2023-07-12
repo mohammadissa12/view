@@ -17,11 +17,10 @@ User = get_user_model()
 
 class PlaceMixin(Entity):
     city = models.ForeignKey('location.City', on_delete=models.CASCADE)
-    name = models.CharField('الاسم', max_length=50, null=True, blank=True)
-    description = models.TextField('الوصف', null=True, blank=True)
-    place_details = models.TextField('تفاصيل المكان', null=True, blank=True)
+    name = models.CharField('الاسم', max_length=50, )
+    description = models.TextField('الوصف', )
     phone_number = models.CharField('رقم الهاتف', max_length=50, null=True, blank=True)
-    short_location = models.CharField('الموقع', max_length=50, null=True, blank=True)
+    short_location = models.CharField('الموقع', max_length=50, )
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661', null=True, blank=True)
 
     def get_average_rating(self) -> float:
@@ -29,6 +28,14 @@ class PlaceMixin(Entity):
 
     def get_review_count(self) -> int:
         return Reviews.objects.filter(place=self).count()
+
+    @property
+    def average_rating(self):
+        return self.get_average_rating()
+
+    @property
+    def review_count(self):
+        return self.get_review_count()
 
     @property
     def latitude(self):
@@ -240,6 +247,8 @@ class Salons(PlaceMixin):
     class Meta:
         verbose_name = 'حلاقة وصالون'
         verbose_name_plural = 'حلاقة وصالونات'
+
+
 class Advertisement(Entity):
     country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة', )
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name='نوع المكان', null=True,

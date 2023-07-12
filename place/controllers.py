@@ -1,7 +1,5 @@
 from ninja import Router
-from django.db.models import Q
 
-from account.models import EmailAccount
 from conf.utils import status
 from conf.utils.permissions import AuthBearer
 from conf.utils.schemas import MessageOut
@@ -11,24 +9,6 @@ from .models import *
 from .schemas import *
 
 place_controller = Router(tags=['Places'])
-
-
-@place_controller.get('/reviews/{place_id}', response={
-    200: List[ReviewsSchema],
-    404: MessageOut
-})
-def get_reviews_by_place(request, place_id: UUID4):
-    try:
-        reviews = Reviews.objects.filter(place_id=place_id)
-        if reviews:
-            return response(status.HTTP_200_OK, reviews)
-        return 404, {'message': 'No reviews found for the specified place.'}
-    except Reviews.DoesNotExist:
-        return 404, {'message': 'Place not found.'}
-
-
-
-
 
 
 @place_controller.get('/places/{pk}', response={
@@ -50,6 +30,40 @@ def get_places_by_city(city_id: UUID4, place_model):
         return places
     except City.DoesNotExist:
         return None
+
+
+@place_controller.get('/reviews/{place_id}', response={
+    200: List[ReviewsSchema],
+    404: MessageOut
+})
+def get_reviews_by_place(request, place_id: UUID4):
+    try:
+        reviews = Reviews.objects.filter(place_id=place_id)
+        if reviews:
+            return response(status.HTTP_200_OK, reviews)
+        return 404, {'message': 'No reviews found for the specified place.'}
+    except Reviews.DoesNotExist:
+        return 404, {'message': 'Place not found.'}
+
+
+@place_controller.get('/places/search/{pk}', response={
+    200: PlaceMixinSchema,
+    404: MessageOut
+})
+def search_places(request, country_id: UUID4, search: str, per_page: int = 12, page: int = 1):
+    try:
+        country = Country.objects.get(id=country_id)
+    except Country.DoesNotExist:
+        return 404, {'message': 'Country not found.'}
+
+    places = PlaceMixin.objects.filter(city__country=country)
+
+    if search:
+        places = places.filter(name__icontains=search)
+
+    if places:
+        return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page)
+    return 404, {'message': 'No places found.'}
 
 
 @place_controller.get('/restaurants/city', response={
@@ -366,5 +380,3 @@ def remove_favorite_place(request, place_id: UUID4):
         return response(status.HTTP_202_ACCEPTED, {'message': 'Place removed from favorite.'})
 
     return 404, {'message': 'Place not found.'}
-
-

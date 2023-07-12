@@ -34,6 +34,8 @@ class PlaceMixinOut(Schema):
     type: Optional[str]
     place_images: List[PlaceImageOut]
     social_media: SocialMediaSchema = None
+    average_rating: Optional[float]
+    review_count: Optional[int]
 
     class Config:
         orm_mode = True
