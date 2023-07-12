@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from ninja import Router, File
 from http import HTTPStatus
 from ninja.files import UploadedFile
+from django.contrib.auth import logout
 
 from conf.utils.schemas import MessageOut
 from conf.utils.permissions import AuthBearer, create_token
@@ -110,3 +111,11 @@ def update_profile(request, user_in: AccountUpdateIn):
     return response(HTTPStatus.OK, user)
 
 
+from django.contrib.auth import logout
+
+
+@auth_controller.post('/logout', auth=AuthBearer(), response={200: MessageOut, 400: MessageOut})
+def user_logout(request):
+    logout(request)
+    request.session.flush()  # Delete the session data
+    return response(HTTPStatus.OK, {'message': 'Logged out and session deleted successfully'})

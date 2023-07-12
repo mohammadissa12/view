@@ -2,6 +2,7 @@ from datetime import date
 from typing import List
 
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from PIL import Image
@@ -15,58 +16,13 @@ User = get_user_model()
 
 
 class PlaceMixin(Entity):
-    PLACE_TYPE_CHOICES = [
-        ('gas_station', 'محطة وقود'),
-        ('entertainment', 'ترفيه'),
-        ('gym', 'نادي رياضي'),
-        ('restaurant', 'مطعم'),
-        ('cafe', 'مقهى'),
-        ('mall', 'مجمع تجاري'),
-
-        ('stay_place', [
-            ('hotel', 'فندق'),
-            ('flat', 'شقق'),
-            ('farm', 'مزرعة'),
-        ]),
-
-        ('health_centre',
-         [
-             ('hospital', 'مستشفى'),
-             ('clinic', 'عيادة'),
-             ('pharmacy', 'صيدلية'),
-         ]),
-
-        ('salon', [
-            ('men_salon', 'صالون رجالي'),
-            ('women_salon', 'صالون نسائي'),
-        ]),
-        ('tourist_place', [
-            ('MUSEUM', 'متحف'),
-            ('PARK', 'حديقة'),
-            ('HISTORICAL_PLACE', 'مكان تاريخي'),
-            ('waterfall', 'شلال'),
-        ]),
-        ('holy_place', [
-            ('MOSQUE', 'مسجد'),
-            ('CHURCH', 'كنيسة'),
-            ('shrine', 'ضريح'),
-        ]),
-        ('financial_place', [
-            ('BANK', 'بنك'),
-            ('ATM', 'صراف آلي'),
-            ('MONEY_EXCHANGE', 'صرافة'),
-        ]),
-
-    ]
-
-    place_type = models.CharField('نوع المكان', max_length=50, choices=PLACE_TYPE_CHOICES)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE)
-    name = models.CharField('الاسم', max_length=50)
+    name = models.CharField('الاسم', max_length=50, null=True, blank=True)
     description = models.TextField('الوصف', null=True, blank=True)
     place_details = models.TextField('تفاصيل المكان', null=True, blank=True)
     phone_number = models.CharField('رقم الهاتف', max_length=50, null=True, blank=True)
     short_location = models.CharField('الموقع', max_length=50, null=True, blank=True)
-    location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661')
+    location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661', null=True, blank=True)
 
     def get_average_rating(self) -> float:
         return Reviews.objects.filter(place=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
@@ -146,9 +102,148 @@ class Reviews(Entity):
         verbose_name_plural = 'تعليقات'
 
 
+class Restaurant(PlaceMixin):
+    advertisement = GenericRelation('Advertisement', related_query_name='restaurant')
+
+    class Meta:
+        verbose_name = 'مطعم'
+        verbose_name_plural = 'مطاعم'
+
+
+class StayPlace(PlaceMixin):
+    class StayPlaceType(models.TextChoices):
+        Hotel = 'فندق', 'فندق'
+        flat = 'شقق', 'شقق'
+        farm = 'مزرعة', 'مزرعة'
+
+    advertisement = GenericRelation('Advertisement', related_query_name='stay_place')
+    type = models.CharField('نوع', choices=StayPlaceType.choices, max_length=50, default=StayPlaceType.Hotel)
+
+    class Meta:
+        verbose_name = 'مكان اقامة'
+        verbose_name_plural = 'اماكن اقامة'
+
+
+class Cafe(PlaceMixin):
+    advertisement = GenericRelation('Advertisement', related_query_name='cafeteria')
+
+    class Meta:
+        verbose_name = 'كافيه'
+        verbose_name_plural = 'كافيهات'
+
+
+class TouristPlace(PlaceMixin):
+    CHOICES = (
+        (
+            ('اماكن سياحية', (
+                ('مصيف', 'مصيف'),
+                ('متحف', 'متحف'),
+                ('شلال', 'شلال'),
+            )),
+            ('اماكن عامة', (
+                ('منتزه', 'منتزه'),
+                ('متحف', 'متحف'),
+                ('معلم حضاري', 'معلم حضاري'),
+            )),
+        ))
+
+    advertisement = GenericRelation('Advertisement', related_query_name='tourist_place')
+    type = models.CharField('نوع المكان', choices=CHOICES, max_length=50, )
+
+    class Meta:
+        verbose_name = 'مكان سياحي'
+        verbose_name_plural = 'أماكن سياحية'
+
+
+class Mall(PlaceMixin):
+    advertisement = GenericRelation('Advertisement', related_query_name='mall')
+
+    class Meta:
+        verbose_name = 'مول'
+        verbose_name_plural = 'مولات'
+
+
+class HealthCentre(PlaceMixin):
+    class HealthCentreType(models.TextChoices):
+        Hospital = 'مستشفى', 'مستشفى'
+        Clinic = 'عيادة', 'عيادة'
+        Pharmacy = 'صيدلية', 'صيدلية'
+
+    advertisement = GenericRelation('Advertisement', related_query_name='health_centre')
+    type = models.CharField('نوع المركز', choices=HealthCentreType.choices, max_length=50, )
+
+    class Meta:
+        verbose_name = 'مركز صحي'
+        verbose_name_plural = 'مراكز صحية'
+
+
+class HolyPlace(PlaceMixin):
+    class HolyPlaceType(models.TextChoices):
+        Mosque = 'مسجد', 'مسجد'
+        Church = 'كنيسة', 'كنيسة'
+        Shrine = 'ضريح', 'ضريح'
+
+    advertisement = GenericRelation('Advertisement', related_query_name='holy_place')
+    type = models.CharField('نوع المكان', choices=HolyPlaceType.choices, max_length=50, )
+
+    class Meta:
+        verbose_name = 'مكان مقدس'
+        verbose_name_plural = 'أماكن مقدسة'
+
+
+class Financial(PlaceMixin):
+    class FinancialType(models.TextChoices):
+        Bank = 'بنك', 'بنك'
+        ATM = 'Atm', 'ATM'
+        Exchange = 'صرافة', 'صرافة'
+
+    advertisement = GenericRelation('Advertisement', related_query_name='financial')
+    type = models.CharField('نوع المكان', choices=FinancialType.choices, max_length=50, )
+
+    class Meta:
+        verbose_name = 'الخدمة المالية'
+        verbose_name_plural = 'الخدمات المالية'
+
+
+class GasStation(PlaceMixin):
+    advertisement = GenericRelation('Advertisement', related_query_name='gas_station')
+
+    class Meta:
+        verbose_name = 'محطة وقود'
+        verbose_name_plural = 'محطات وقود'
+
+
+class Entertainment(PlaceMixin):
+    advertisement = GenericRelation('Advertisement', related_query_name='entertainment')
+
+    class Meta:
+        verbose_name = ' مكان ترفيهي'
+        verbose_name_plural = 'اماكن ترفيهية'
+
+
+class Gym(PlaceMixin):
+    advertisement = GenericRelation('Advertisement', related_query_name='gym')
+
+    class Meta:
+        verbose_name = 'مكان رياضي'
+        verbose_name_plural = 'اماكن رياضية'
+
+
+class Salons(PlaceMixin):
+    class SalonType(models.TextChoices):
+        barber = 'حلاق رجالي', 'حلاق رجالي'
+        salon = 'صالون نسائي', 'صالون نسائي'
+
+    advertisement = GenericRelation('Advertisement', related_query_name='salons')
+    type = models.CharField('نوع المكان', choices=SalonType.choices, max_length=50, )
+
+    class Meta:
+        verbose_name = 'حلاقة وصالون'
+        verbose_name_plural = 'حلاقة وصالونات'
 class Advertisement(Entity):
     country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة', )
-    place_type = models.CharField(max_length=50, choices=PlaceMixin.PLACE_TYPE_CHOICES, verbose_name='نوع المكان', )
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name='نوع المكان', null=True,
+                                     blank=True)
     image = models.ImageField('الصورة', upload_to='advertisements')
     title = models.CharField('العنوان', max_length=50)
     short_description = models.CharField('الوصف المختصر', max_length=100)
