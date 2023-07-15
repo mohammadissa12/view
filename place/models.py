@@ -131,6 +131,7 @@ class Restaurant(PlaceMixin):
         verbose_name_plural = 'مطاعم'
 
 
+
 class StayPlace(PlaceMixin):
     class StayPlaceType(models.TextChoices):
         Hotel = 'فندق', 'فندق'
@@ -293,7 +294,7 @@ class RecommendedPlaces(Entity):
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان')
 
     def __str__(self):
-        return f'{self.place}'
+        return f'{self.place.name}'
 
     class Meta:
         verbose_name = 'مكان موصى به'
@@ -305,7 +306,7 @@ class LatestPlaces(Entity):
     country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='latest_places' )
 
     def __str__(self):
-        return f'{self.place}'
+        return f'{self.place.name}'
 
     class Meta:
         verbose_name = 'احدث الاماكن'
