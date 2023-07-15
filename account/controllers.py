@@ -1,3 +1,4 @@
+import contextlib
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from ninja import Router, File
@@ -18,23 +19,23 @@ auth_controller = Router(tags=['Auth'])
 def signup(request, payload: AccountSignupIn):
     if payload.password1 != payload.password2:
         return response(HTTPStatus.BAD_REQUEST, {'message': 'Passwords does not match!'})
-    try:
+    with contextlib.suppress(EmailAccount.DoesNotExist):
         EmailAccount.objects.get(phone_number=payload.phone_number)
         return response(403,
                         {'message': 'Forbidden, phone number is already registered'})
-    except EmailAccount.DoesNotExist:
-        pass
-
     try:
         EmailAccount.objects.get(email=payload.email)
         return response(403,
                         {'message': 'Forbidden, email is already registered'})
 
     except EmailAccount.DoesNotExist:
-        user = EmailAccount.objects.create_user(first_name=payload.first_name, last_name=payload.last_name,
-                                                email=payload.email, phone_number=payload.phone_number,
-                                                password=payload.password1)
-        if user:
+        if user := EmailAccount.objects.create_user(
+            first_name=payload.first_name,
+            last_name=payload.last_name,
+            email=payload.email,
+            phone_number=payload.phone_number,
+            password=payload.password1,
+        ):
             user.phone_number = payload.phone_number
             user.save()
             token = create_token(user.id)
@@ -64,7 +65,7 @@ def change_password(request, payload: ChangePassword):
 
     try:
         user = get_object_or_404(EmailAccount, id=request.auth.id)
-    except:
+    except Exception:
         return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
 
     user_update = authenticate(phone_number=user.phone_number, password=payload.old_password)
@@ -83,7 +84,7 @@ def change_password(request, payload: ChangePassword):
 def profile(request):
     try:
         user = get_object_or_404(EmailAccount, id=request.auth.id)
-    except:
+    except Exception:
         return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
     return response(HTTPStatus.OK, user)
 
@@ -94,7 +95,7 @@ def profile(request):
 def update_profile(request, user_in: AccountUpdateIn):
     try:
         user = get_object_or_404(EmailAccount, id=request.auth.id)
-    except:
+    except Exception:
         return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
 
     if user_in.first_name:

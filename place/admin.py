@@ -130,10 +130,7 @@ class CountryFilter(admin.SimpleListFilter):
         return [(country.id, country.country_name) for country in countries]
 
     def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(country__id=self.value())
-        else:
-            return queryset
+        return queryset.filter(country__id=self.value()) if self.value() else queryset
 
 
 class AdvertisementAdmin(admin.ModelAdmin):

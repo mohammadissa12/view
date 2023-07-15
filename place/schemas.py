@@ -15,7 +15,7 @@ class SocialMediaSchema(Schema):
     instagram: Optional[HttpUrl]
     telegram: Optional[HttpUrl]
     whatsapp: Optional[HttpUrl]
-    is_available: bool
+    social_media_links: List[str]
 
 
 class PlaceImageOut(Schema):
@@ -26,14 +26,15 @@ class PlaceImageOut(Schema):
 class PlaceMixinOut(Schema):
     id: UUID4
     name: str
-    location: str
+    # location: str
     city: CityOut
-    description: Optional[str]
-    place_details: Optional[str]
-    short_location: Optional[str]
-    type: Optional[str]
+    longitude: float
+    latitude: float
+    description: str
+    short_location: str
     place_images: List[PlaceImageOut]
-    social_media: SocialMediaSchema = None
+    type: Optional[str]
+    # social_media: SocialMediaSchema = None
     average_rating: Optional[float]
     review_count: Optional[int]
 
@@ -61,7 +62,9 @@ class ReviewsSchema(Schema):
     rating: int
 
 
-
+class ReviewsIn(Schema):
+    comment: Optional[str]
+    rating: int
 
 
 class ContentTypeOut(Schema):
@@ -84,6 +87,7 @@ class AdvertisementSchema(Schema):
     start_date: date
     end_date: date
     is_active: bool
+
 
 
 class RecommendedPlacesOut(Schema):

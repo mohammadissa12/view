@@ -1,5 +1,6 @@
 from ninja import Router
 
+from account.models import EmailAccount
 from conf.utils import status
 from conf.utils.permissions import AuthBearer
 from conf.utils.schemas import MessageOut
@@ -17,8 +18,7 @@ place_controller = Router(tags=['Places'])
 })
 def get_place(request, pk: UUID4):
     try:
-        place = PlaceMixin.objects.get(id=pk)
-        return place
+        return PlaceMixin.objects.get(id=pk)
     except PlaceMixin.DoesNotExist:
         return 404, {'message': 'Place not found.'}
 
@@ -26,8 +26,7 @@ def get_place(request, pk: UUID4):
 def get_places_by_city(city_id: UUID4, place_model):
     try:
         city = City.objects.get(id=city_id)
-        places = place_model.objects.filter(city=city)
-        return places
+        return place_model.objects.filter(city=city)
     except City.DoesNotExist:
         return None
 
@@ -38,12 +37,39 @@ def get_places_by_city(city_id: UUID4, place_model):
 })
 def get_reviews_by_place(request, place_id: UUID4):
     try:
-        reviews = Reviews.objects.filter(place_id=place_id)
-        if reviews:
+        if reviews := Reviews.objects.filter(place_id=place_id):
             return response(status.HTTP_200_OK, reviews)
         return 404, {'message': 'No reviews found for the specified place.'}
     except Reviews.DoesNotExist:
         return 404, {'message': 'Place not found.'}
+
+
+@place_controller.post('/', response={201: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
+def create_review(request, review_data: ReviewsIn, place_id: UUID4):
+    user = request.auth
+
+    try:
+        place = PlaceMixin.objects.get(id=place_id)
+    except PlaceMixin.DoesNotExist:
+        return 404, {'message': 'Place not found.'}
+
+    review = Reviews.objects.create(
+        user=user,
+        place=place,
+        comment=review_data.comment,
+        rating=review_data.rating
+    )
+    return response(status.HTTP_201_CREATED, review)
+
+
+# @place_controller.delete('/reviews/{review_id}', response={204: MessageOut, 404: MessageOut}, auth=AuthBearer())
+# def delete_review(request, review_id: UUID4):
+#     user = request.auth
+#     if review := Reviews.objects.filter(id=review_id):
+#         if review.user == user:
+#             review.delete()
+#             return 204, {'message': 'Review deleted successfully.'}
+#         return 403, {'message': 'You are not allowed to delete this review.'}
 
 
 @place_controller.get('/places/search/{pk}', response={
@@ -278,8 +304,7 @@ advertisement_controller = Router(tags=['Advertisement'])
     404: MessageOut
 })
 def get_advertisement_by_country(request, country_id: UUID4, ):
-    advertisement = Advertisement.objects.filter(country_id=country_id)
-    if advertisement:
+    if advertisement := Advertisement.objects.filter(country_id=country_id):
         return response(status.HTTP_200_OK, advertisement)
     return 404, {'message': 'No advertisement found.'}
 
@@ -294,8 +319,9 @@ def get_advertisement_by_content_type(request, model: str):
     except ContentType.DoesNotExist:
         return 404, {'message': 'Content type not found.'}
 
-    advertisements = Advertisement.objects.filter(content_type=content_type)
-    if advertisements:
+    if advertisements := Advertisement.objects.filter(
+            content_type=content_type
+    ):
         return response(status.HTTP_200_OK, advertisements)
     return 404, {'message': 'No advertisement found for the specified content type.'}
 
@@ -308,8 +334,9 @@ RecommendedPlaces_controller = Router(tags=['Recommended Places'])
     404: MessageOut
 })
 def get_recommended_places_by_country(request, country_id: UUID4):
-    recommended_places = RecommendedPlaces.objects.filter(country_id=country_id)
-    if recommended_places:
+    if recommended_places := RecommendedPlaces.objects.filter(
+            country_id=country_id
+    ):
         return response(status.HTTP_200_OK, recommended_places)
     return 404, {'message': 'No recommended places found.'}
 
@@ -324,8 +351,9 @@ latest_places_controller = Router(tags=['Latest Places'])
 def get_latest_places_by_country(request, country_id: UUID4):
     try:
         country = Country.objects.get(id=country_id)
-        latest_places = LatestPlaces.objects.filter(country=country).order_by('-created')[:5]
-        if latest_places:
+        if latest_places := LatestPlaces.objects.filter(
+                country=country
+        ).order_by('-created')[:5]:
             return response(status.HTTP_200_OK, latest_places)
         return 404, {'message': 'No latest places found.'}
     except Country.DoesNotExist:
@@ -342,8 +370,7 @@ favorite_places_controller = Router(tags=['favorite places'])
 })
 def get_favorite_places(request):
     user = request.auth
-    favorite_places_qs = user.favorite_places.all()
-    if favorite_places_qs:
+    if favorite_places_qs := user.favorite_places.all():
         return response(status.HTTP_200_OK, favorite_places_qs)
     return 404, {'message': 'No favorite places found.'}
 
@@ -374,8 +401,7 @@ def add_favorite_place(request, place_id: UUID4):
 })
 def remove_favorite_place(request, place_id: UUID4):
     user = request.auth
-    place = PlaceMixin.objects.get(id=place_id)
-    if place:
+    if place := PlaceMixin.objects.get(id=place_id):
         favorite_place = user.favorite_places.filter(place=place).delete()
         return response(status.HTTP_202_ACCEPTED, {'message': 'Place removed from favorite.'})
 

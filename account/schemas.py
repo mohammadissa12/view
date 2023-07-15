@@ -48,3 +48,6 @@ class ChangePassword(Schema):
 class Profile(Schema):
     id: UUID4
     account: AccountOut
+
+
+

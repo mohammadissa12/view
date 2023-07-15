@@ -3,6 +3,7 @@ from typing import List
 
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from PIL import Image
@@ -16,12 +17,12 @@ User = get_user_model()
 
 
 class PlaceMixin(Entity):
-    city = models.ForeignKey('location.City', on_delete=models.CASCADE)
-    name = models.CharField('الاسم', max_length=50, )
+    city = models.ForeignKey('location.City', on_delete=models.CASCADE,related_name='city_places')
+    name = models.CharField('الاسم', max_length=50,)
     description = models.TextField('الوصف', )
     phone_number = models.CharField('رقم الهاتف', max_length=50, null=True, blank=True)
     short_location = models.CharField('الموقع', max_length=50, )
-    location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661', null=True, blank=True)
+    location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661')
 
     def get_average_rating(self) -> float:
         return Reviews.objects.filter(place=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
@@ -67,7 +68,19 @@ class SocialMedia(Entity):
     instagram = models.URLField('انستجرام', null=True, blank=True)
     telegram = models.URLField('تليجرام', null=True, blank=True)
     whatsapp = models.URLField('واتساب', null=True, blank=True)
-    is_available = models.BooleanField('متاح', default=True)
+
+    @property
+    def social_media_links(self):
+        links = []
+        if self.facebook:
+            links.append(self.facebook)
+        if self.instagram:
+            links.append(self.instagram)
+        if self.telegram:
+            links.append(self.telegram)
+        if self.whatsapp:
+            links.append(self.whatsapp)
+        return links
 
     class Meta:
         verbose_name = 'وسائل التواصل الاجتماعي'
@@ -99,7 +112,8 @@ class Reviews(Entity):
     user = models.ForeignKey('account.EmailAccount', on_delete=models.CASCADE)
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE)
     comment = models.TextField('التعليق', null=True, blank=True)
-    rating = models.IntegerField('التقييم', default=0)
+    rating = models.PositiveSmallIntegerField('التقييم', default=1,
+                                              validators=[MinValueValidator(1), MaxValueValidator(5)])
 
     def __str__(self):
         return f'{self.user} - {self.place}'
@@ -142,12 +156,10 @@ class Cafe(PlaceMixin):
 class TouristPlace(PlaceMixin):
     CHOICES = (
         (
-            ('اماكن سياحية', (
+            ('tourist_place  ', (
                 ('مصيف', 'مصيف'),
                 ('متحف', 'متحف'),
                 ('شلال', 'شلال'),
-            )),
-            ('اماكن عامة', (
                 ('منتزه', 'منتزه'),
                 ('متحف', 'متحف'),
                 ('معلم حضاري', 'معلم حضاري'),
@@ -250,7 +262,7 @@ class Salons(PlaceMixin):
 
 
 class Advertisement(Entity):
-    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة', )
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='advertisements' )
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name='نوع المكان', null=True,
                                      blank=True)
     image = models.ImageField('الصورة', upload_to='advertisements')
@@ -277,7 +289,7 @@ def set_active(sender, instance, **kwargs):
 
 
 class RecommendedPlaces(Entity):
-    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة', )
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='recommended_places' )
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان')
 
     def __str__(self):
@@ -290,7 +302,7 @@ class RecommendedPlaces(Entity):
 
 class LatestPlaces(Entity):
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان')
-    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة', )
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='latest_places' )
 
     def __str__(self):
         return f'{self.place}'
