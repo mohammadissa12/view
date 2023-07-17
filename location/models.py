@@ -15,7 +15,6 @@ class Country(Entity):
     @property
     def get_cities(self):
         return self.country_city.all()
-
     @property
     def get_advertisements(self):
         return self.advertisements.all()

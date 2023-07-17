@@ -58,33 +58,26 @@ class PlaceMixin(Entity):
         return self.reviews.all()
 
     @property
-    def place_social_media(self):
-        return f'{self.social_media}'
-
+    def get_social_media(self):
+        try:
+            return self.social_media.all()
+        except SocialMedia.DoesNotExist:
+            return None
 
 class SocialMedia(Entity):
-    place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media')
-    facebook = models.URLField('فيسبوك', null=True, blank=True)
-    instagram = models.URLField('انستجرام', null=True, blank=True)
-    telegram = models.URLField('تليجرام', null=True, blank=True)
-    whatsapp = models.URLField('واتساب', null=True, blank=True)
+    place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True, blank=True)
+    facebook = models.CharField('فيسبوك', null=True, blank=True, max_length=50)
+    instagram = models.CharField('انستغرام', null=True, blank=True, max_length=50)
+    telegram = models.CharField('تليجرام', null=True, blank=True, max_length=50)
+    whatsapp = models.CharField('واتساب', null=True, blank=True, max_length=50)
 
-    @property
-    def social_media_links(self):
-        links = []
-        if self.facebook:
-            links.append(self.facebook)
-        if self.instagram:
-            links.append(self.instagram)
-        if self.telegram:
-            links.append(self.telegram)
-        if self.whatsapp:
-            links.append(self.whatsapp)
-        return links
 
     class Meta:
         verbose_name = 'وسائل التواصل الاجتماعي'
         verbose_name_plural = 'وسائل التواصل الاجتماعي'
+
+    def all(self):
+        return self.objects.all()
 
 
 class Images(Entity):
@@ -114,6 +107,7 @@ class Reviews(Entity):
     comment = models.TextField('التعليق', null=True, blank=True)
     rating = models.PositiveSmallIntegerField('التقييم', default=1,
                                               validators=[MinValueValidator(1), MaxValueValidator(5)])
+    reported = models.BooleanField('تم الابلاغ', default=False)  # New field for reporting
 
     def __str__(self):
         return f'{self.user} - {self.place}'
@@ -294,7 +288,7 @@ class RecommendedPlaces(Entity):
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان')
 
     def __str__(self):
-        return f'{self.place.name}'
+        return f'{self.place}'
 
     class Meta:
         verbose_name = 'مكان موصى به'

@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 class EmailAccountManager(UserManager):
     def get_by_natural_key(self, username):
-        case_insensitive_username_field = '{}__iexact'.format(self.model.USERNAME_FIELD)
+        case_insensitive_username_field = f'{self.model.USERNAME_FIELD}__iexact'
         return self.get(**{case_insensitive_username_field: username})
 
     def create_user(self, first_name, last_name, phone_number, password=None, **extra_fields):
@@ -37,8 +37,8 @@ class EmailAccountManager(UserManager):
 class EmailAccount(AbstractUser):
     id = models.AutoField(primary_key=True)
     username = models.NOT_PROVIDED
-    first_name = models.CharField('الاسم الاول', max_length=255, blank=True, null=True)
-    last_name = models.CharField('الاسم الثاني', max_length=255, blank=True, null=True, )
+    first_name = models.CharField('الاسم الاول', max_length=255)
+    last_name = models.CharField('الاسم الثاني', max_length=255)
     email = models.EmailField('Email', blank=True, null=True)
     phone_number = models.IntegerField('رقم الهاتف', unique=True)
     is_verified = models.BooleanField(default=False)

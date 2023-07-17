@@ -7,15 +7,15 @@ from pydantic import HttpUrl
 
 from account.schemas import Profile, AccountOut
 from location.schemas import CityOut, CountryOut
+from place.models import PlaceMixin
 
 
 class SocialMediaSchema(Schema):
     id: UUID4
-    facebook: Optional[HttpUrl]
-    instagram: Optional[HttpUrl]
-    telegram: Optional[HttpUrl]
-    whatsapp: Optional[HttpUrl]
-    social_media_links: List[str]
+    facebook: str = None
+    whatsapp: str = None
+    instagram: str = None
+    telegram: str = None
 
 
 class PlaceImageOut(Schema):
@@ -34,12 +34,21 @@ class PlaceMixinOut(Schema):
     short_location: str
     place_images: List[PlaceImageOut]
     type: Optional[str]
-    # social_media: SocialMediaSchema = None
+    # social_media: Optional[SocialMediaSchema] = None
     average_rating: Optional[float]
+
+
     review_count: Optional[int]
+
 
     class Config:
         orm_mode = True
+
+    # @staticmethod
+    # def from_orm(place: PlaceMixin):
+    #     return PlaceMixinOut(
+    #         social_media=[SocialMediaSchema.from_orm(place.get_social_media)] if place.social_media else None,)
+
 
 
 class PlaceMixinSchema(Schema):
@@ -87,7 +96,6 @@ class AdvertisementSchema(Schema):
     start_date: date
     end_date: date
     is_active: bool
-
 
 
 class RecommendedPlacesOut(Schema):

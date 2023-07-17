@@ -31,67 +31,6 @@ def get_places_by_city(city_id: UUID4, place_model):
         return None
 
 
-@place_controller.get('/reviews/{place_id}', response={
-    200: List[ReviewsSchema],
-    404: MessageOut
-})
-def get_reviews_by_place(request, place_id: UUID4):
-    try:
-        if reviews := Reviews.objects.filter(place_id=place_id):
-            return response(status.HTTP_200_OK, reviews)
-        return 404, {'message': 'No reviews found for the specified place.'}
-    except Reviews.DoesNotExist:
-        return 404, {'message': 'Place not found.'}
-
-
-@place_controller.post('/', response={201: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
-def create_review(request, review_data: ReviewsIn, place_id: UUID4):
-    user = request.auth
-
-    try:
-        place = PlaceMixin.objects.get(id=place_id)
-    except PlaceMixin.DoesNotExist:
-        return 404, {'message': 'Place not found.'}
-
-    review = Reviews.objects.create(
-        user=user,
-        place=place,
-        comment=review_data.comment,
-        rating=review_data.rating
-    )
-    return response(status.HTTP_201_CREATED, review)
-
-
-# @place_controller.delete('/reviews/{review_id}', response={204: MessageOut, 404: MessageOut}, auth=AuthBearer())
-# def delete_review(request, review_id: UUID4):
-#     user = request.auth
-#     if review := Reviews.objects.filter(id=review_id):
-#         if review.user == user:
-#             review.delete()
-#             return 204, {'message': 'Review deleted successfully.'}
-#         return 403, {'message': 'You are not allowed to delete this review.'}
-
-
-@place_controller.get('/places/search/{pk}', response={
-    200: PlaceMixinSchema,
-    404: MessageOut
-})
-def search_places(request, country_id: UUID4, search: str, per_page: int = 12, page: int = 1):
-    try:
-        country = Country.objects.get(id=country_id)
-    except Country.DoesNotExist:
-        return 404, {'message': 'Country not found.'}
-
-    places = PlaceMixin.objects.filter(city__country=country)
-
-    if search:
-        places = places.filter(name__icontains=search)
-
-    if places:
-        return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page)
-    return 404, {'message': 'No places found.'}
-
-
 @place_controller.get('/restaurants/city', response={
     200: PlaceMixinSchema,
     404: MessageOut
@@ -309,21 +248,25 @@ def get_advertisement_by_country(request, country_id: UUID4, ):
     return 404, {'message': 'No advertisement found.'}
 
 
-@advertisement_controller.get('/advertisement/content_type/{model}', response={
+@advertisement_controller.get('/advertisement/content_type/{model}/{country_id}', response={
     200: List[AdvertisementSchema],
     404: MessageOut
 })
-def get_advertisement_by_content_type(request, model: str):
+def get_advertisement_by_content_type(request, model: str, country_id: UUID4):
     try:
         content_type = ContentType.objects.get(model=model)
     except ContentType.DoesNotExist:
         return 404, {'message': 'Content type not found.'}
 
-    if advertisements := Advertisement.objects.filter(
-            content_type=content_type
-    ):
+    try:
+        country = Country.objects.get(id=country_id)
+    except Country.DoesNotExist:
+        return 404, {'message': 'Country not found.'}
+
+    if advertisements := Advertisement.objects.filter(content_type=content_type, country=country):
         return response(status.HTTP_200_OK, advertisements)
-    return 404, {'message': 'No advertisement found for the specified content type.'}
+
+    return 404, {'message': 'No advertisements found for the specified content type and country.'}
 
 
 RecommendedPlaces_controller = Router(tags=['Recommended Places'])
@@ -406,3 +349,132 @@ def remove_favorite_place(request, place_id: UUID4):
         return response(status.HTTP_202_ACCEPTED, {'message': 'Place removed from favorite.'})
 
     return 404, {'message': 'Place not found.'}
+
+
+review_controller = Router(tags=['Reviews'])
+
+
+@review_controller.get('/reviews/{place_id}', response={
+    200: List[ReviewsSchema],
+    404: MessageOut
+})
+def get_reviews_by_place(request, place_id: UUID4):
+    try:
+        if reviews := Reviews.objects.filter(place_id=place_id):
+            return response(status.HTTP_200_OK, reviews)
+        return 404, {'message': 'No reviews found for the specified place.'}
+    except Reviews.DoesNotExist:
+        return 404, {'message': 'Place not found.'}
+
+
+@review_controller.post('/', response={201: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
+def create_review(request, review_data: ReviewsIn, place_id: UUID4):
+    user = request.auth
+
+    try:
+        place = PlaceMixin.objects.get(id=place_id)
+    except PlaceMixin.DoesNotExist:
+        return 404, {'message': 'Place not found.'}
+
+    review = Reviews.objects.create(
+        user=user,
+        place=place,
+        comment=review_data.comment,
+        rating=review_data.rating
+    )
+    return response(status.HTTP_201_CREATED, review)
+
+
+@review_controller.delete('/remove', response={200: MessageOut, 404: MessageOut}, auth=AuthBearer())
+def delete_review(request, review_id: UUID4):
+    user = request.auth
+
+    try:
+        review = Reviews.objects.get(id=review_id)
+    except Reviews.DoesNotExist:
+        return 404, {'message': 'Review not found.'}
+    print(review.user, user)
+    if review.user != user:
+        return 403, {'message': 'You are not allowed to delete this review.'}
+
+    review.delete()
+    return response(status.HTTP_200_OK, {'message': 'Review deleted successfully.'})
+
+
+@review_controller.post(('/comments/{comment_id}/report'), response={200: MessageOut, 404: MessageOut},
+                        auth=AuthBearer())
+def report_comment(request, comment_id: UUID4):
+    user = request.auth
+
+    try:
+        comment = Reviews.objects.get(id=comment_id)
+    except Reviews.DoesNotExist:
+        return 404, {'message': 'Comment not found.'}
+
+    if comment.user == user:
+        return 403, {'message': 'You are not allowed to report your own comment.'}
+
+    comment.reported = True
+    comment.save()
+    return response(status.HTTP_200_OK, {'message': 'Comment reported successfully.'})
+
+
+
+search_controller = Router(tags=['Search'])
+
+
+@search_controller.get('/places/search/{pk}', response={
+    200: List[PlaceMixinOut],
+    404: MessageOut
+})
+def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None, place_type: str = None):
+    try:
+        country = Country.objects.get(id=country_id)
+    except Country.DoesNotExist:
+        return 404, {'message': 'Country not found.'}
+
+    places = PlaceMixin.objects.filter(city__country=country)
+
+    if city_id:
+        places = places.filter(city_id=city_id)
+
+    if search:
+        places = places.filter(name__icontains=search)
+
+    if place_type:
+        filtered_places = []
+        if place_type.lower() == 'restaurant':
+            filtered_places = Restaurant.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'stayplace':
+            filtered_places = StayPlace.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'cafe':
+            filtered_places = Cafe.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'touristplace':
+            filtered_places = TouristPlace.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'mall':
+            filtered_places = Mall.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'healthcentre':
+            filtered_places = HealthCentre.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'holyplace':
+            filtered_places = HolyPlace.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'financial':
+            filtered_places = Financial.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'gasstation':
+            filtered_places = GasStation.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'entertainment':
+            filtered_places = Entertainment.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'gym':
+            filtered_places = Gym.objects.filter(id__in=places.values('id'))
+        elif place_type.lower() == 'salons':
+            filtered_places = Salons.objects.filter(id__in=places.values('id'))
+
+
+        if filtered_places:
+            return response(status.HTTP_200_OK, filtered_places)
+        else:
+            return 404, {'message': 'No places found for the specified type.'}
+
+    if places:
+        return response(status.HTTP_200_OK, places)
+
+    return 404, {'message': 'No places found.'}

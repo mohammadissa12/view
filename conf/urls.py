@@ -4,7 +4,7 @@ from django.urls import path, include
 from ninja import NinjaAPI
 
 from account.controllers import auth_controller
-from place.controllers import place_controller, advertisement_controller, RecommendedPlaces_controller,latest_places_controller,favorite_places_controller
+from place.controllers import place_controller, advertisement_controller, RecommendedPlaces_controller,latest_places_controller,favorite_places_controller,review_controller,search_controller
 from location.controllers import country_controller
 
 api = NinjaAPI()
@@ -15,6 +15,8 @@ api.add_router('advertisements/', advertisement_controller)
 api.add_router('recommended-places/', RecommendedPlaces_controller)
 api.add_router('latest-places/', latest_places_controller)
 api.add_router('favorite_places',favorite_places_controller)
+api.add_router('reviews/',review_controller)
+api.add_router('search/',search_controller)
 from conf import settings
 
 urlpatterns = [

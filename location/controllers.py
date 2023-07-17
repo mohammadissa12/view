@@ -11,7 +11,7 @@ from place.models import Advertisement, LatestPlaces, RecommendedPlaces
 from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut
 from .models import Country, City
 from .schemas import *
-from .schemas2 import CountryInfoSchema, CountryInfoSchema2, CountrySchema2
+from .schemas2 import  CountrySchema2
 
 country_controller = Router(tags=['Location'])
 
@@ -31,13 +31,13 @@ def all_countries(request, search=None, per_page: int = 12, page: int = 1):
     return 404, {'message': 'No countries found.'}
 
 
-@country_controller.get('/countries/{pk}', response={
+@country_controller.get('/countries/{country_name}', response={
     200: CountryOut,
     404: MessageOut
 })
-def get_country(request, pk: UUID4):
+def get_country(request, country_name: str):
     try:
-        return Country.objects.get(id=pk)
+        return get_object_or_404(Country, country_name__iexact=country_name)
     except Country.DoesNotExist:
         return 404, {'message': 'Country not found.'}
 

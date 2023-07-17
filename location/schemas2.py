@@ -10,23 +10,6 @@ from place.models import Advertisement
 from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut
 
 
-class CountryInfoSchema(Schema):
-    get_cities: List[CityOut]
-
-
-class CountryInfoSchema2(ModelSchema):
-    class Config:
-        model = Advertisement
-        model_fields = ['id', 'content_type', 'url', 'place', 'is_active']
-
-
-class CountryRecommendedPlacesOut(Schema):
-    get_recommended_places: List[RecommendedPlacesOut]
-
-    class Config:
-        orm_mode = True
-
-
 class CountrySchema2(Schema):
     country_name: str
     cities: List[CityOut]
