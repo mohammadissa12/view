@@ -51,16 +51,16 @@ class PlaceMixinOut(Schema):
 
 
 
-class PlaceMixinSchema(Schema):
-    total_count: int = None
-    per_page: int = None
-    from_record: int = None
-    to_record: int = None
-    previous_page: int = None
-    next_page: int = None
-    current_page: int = None
-    page_count: int = None
-    data: List[PlaceMixinOut]
+# class PlaceMixinSchema(Schema):
+#     total_count: int = None
+#     per_page: int = None
+#     from_record: int = None
+#     to_record: int = None
+#     previous_page: int = None
+#     next_page: int = None
+#     current_page: int = None
+#     page_count: int = None
+#     data: List[PlaceMixinOut]
 
 
 class ReviewsSchema(Schema):
