@@ -2,7 +2,7 @@ from datetime import date
 
 from ninja import Schema
 from pydantic import UUID4, Field, BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import HttpUrl
 
 from account.schemas import Profile, AccountOut
@@ -11,11 +11,7 @@ from place.models import PlaceMixin
 
 
 class SocialMediaSchema(Schema):
-    id: UUID4
-    facebook: str = None
-    whatsapp: str = None
-    instagram: str = None
-    telegram: str = None
+    social_media_links: Dict[str, str] = None
 
 
 class PlaceImageOut(Schema):
@@ -33,8 +29,8 @@ class PlaceMixinOut(Schema):
     description: str
     short_location: str
     place_images: List[PlaceImageOut]
+    social_media: Optional[SocialMediaSchema]
     type: Optional[str]
-    # social_media: Optional[SocialMediaSchema] = None
     average_rating: Optional[float]
 
 
@@ -44,23 +40,34 @@ class PlaceMixinOut(Schema):
     class Config:
         orm_mode = True
 
-    # @staticmethod
-    # def from_orm(place: PlaceMixin):
-    #     return PlaceMixinOut(
-    #         social_media=[SocialMediaSchema.from_orm(place.get_social_media)] if place.social_media else None,)
+    @staticmethod
+    def from_orm( place: PlaceMixin):
+        social_media_link = place.get_social_media
 
+        return PlaceMixinOut(
+            id=place.id,
+            name=place.name,
+            city=CityOut.from_orm(place.city),
+            longitude=place.longitude,
+            latitude=place.latitude,
+            description=place.description,
+            short_location=place.short_location,
+            place_images=[PlaceImageOut.from_orm(image) for image in place.place_images],
+            average_rating=place.average_rating,
+            review_count=place.review_count,
+            social_media=social_media_link,
+        )
 
-
-# class PlaceMixinSchema(Schema):
-#     total_count: int = None
-#     per_page: int = None
-#     from_record: int = None
-#     to_record: int = None
-#     previous_page: int = None
-#     next_page: int = None
-#     current_page: int = None
-#     page_count: int = None
-#     data: List[PlaceMixinOut]
+class PlaceMixinSchema(Schema):
+    total_count: int = None
+    per_page: int = None
+    from_record: int = None
+    to_record: int = None
+    previous_page: int = None
+    next_page: int = None
+    current_page: int = None
+    page_count: int = None
+    data: List[PlaceMixinOut]
 
 
 class ReviewsSchema(Schema):

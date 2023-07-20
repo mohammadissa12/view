@@ -11,6 +11,7 @@ from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlace
 
 
 class CountrySchema2(Schema):
+    country_id : UUID4= None
     country_name: str
     cities: List[CityOut]
     advertisements: List[AdvertisementSchema]
@@ -20,6 +21,7 @@ class CountrySchema2(Schema):
     @staticmethod
     def from_orm(country: Country):
         return CountrySchema2(
+            country_id=country.id,
             country_name=country.country_name,
             cities=[CityOut.from_orm(city) for city in country.get_cities],
             advertisements=[AdvertisementSchema.from_orm(ad) for ad in country.get_advertisements],

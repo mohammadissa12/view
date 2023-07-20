@@ -60,7 +60,7 @@ class PlaceMixin(Entity):
     @property
     def get_social_media(self):
         try:
-            return self.social_media.all()
+            return self.social_media
         except SocialMedia.DoesNotExist:
             return None
 
@@ -76,8 +76,18 @@ class SocialMedia(Entity):
         verbose_name = 'وسائل التواصل الاجتماعي'
         verbose_name_plural = 'وسائل التواصل الاجتماعي'
 
-    def all(self):
-        return self.objects.all()
+    @property
+    def social_media_links(self):
+        links = {}
+        if self.facebook:
+            links['facebook'] = self.facebook
+        if self.instagram:
+            links['instagram'] = self.instagram
+        if self.telegram:
+            links['telegram'] = self.telegram
+        if self.whatsapp:
+            links['whatsapp'] = self.whatsapp
+        return links
 
 
 class Images(Entity):
