@@ -3,7 +3,24 @@ from conf.utils.models import Entity
 
 
 class Country(Entity):
-    country_name = models.CharField('اسم الدولة', max_length=50, unique=True)
+    class CountryChoices(models.TextChoices):
+        IRAQ = 'IRAQ', 'العراق'
+        TURKEY = 'TURKEY', 'تركيا'
+        EGYPT = 'EGYPT', 'مصر'
+        SAUDI_ARABIA = 'SAUDI_ARABIA', 'السعودية'
+        UNITED_ARAB_EMIRATES = 'UNITED_ARAB_EMIRATES', 'الامارات العربية المتحدة'
+        SYRIA = 'SYRIA', 'سورية'
+        LEBANON = 'LEBANON', 'لبنان'
+        IRAN = 'IRAN', 'ايران'
+        TUNISIA = 'TUNISIA', 'تونس'
+        OMAN = 'OMAN', 'عمان'
+        MALAYSIA = 'MALAYSIA', 'ماليزيا'
+        BALI = 'BALI', 'بالي'
+        GEORGIA = 'GEORGIA', 'جورجيا'
+        AZERBAIJAN = 'AZERBAIJAN', 'اذربيجان'
+
+
+    country_name = models.CharField('اسم الدولة', max_length=50, unique=True, choices=CountryChoices.choices)
 
     def __str__(self):
         return f'{self.country_name}'
