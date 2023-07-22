@@ -10,31 +10,24 @@ from .models import *
 from .schemas import *
 
 
+
 def filter_by_place_type(places, place_type):
-    if place_type.lower() == 'restaurant':
-        return Restaurant.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'stayplace':
-        return StayPlace.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'cafe':
-        return Cafe.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'touristplace':
-        return TouristPlace.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'mall':
-        return Mall.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'healthcentre':
-        return HealthCentre.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'holyplace':
-        return HolyPlace.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'financial':
-        return Financial.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'gasstation':
-        return GasStation.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'entertainment':
-        return Entertainment.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'gym':
-        return Gym.objects.filter(id__in=places.values('id'))
-    elif place_type.lower() == 'salons':
-        return Salons.objects.filter(id__in=places.values('id'))
+    place_model_map = {
+        'restaurant': Restaurant,
+        'stayplace': StayPlace,
+        'cafe': Cafe,
+        'touristplace': TouristPlace,
+        'mall': Mall,
+        'healthcentre': HealthCentre,
+        'holyplace': HolyPlace,
+        'financial': Financial,
+        'gasstation': GasStation,
+        'entertainment': Entertainment,
+        'gym': Gym,
+        'salons': Salons,
+    }
+    if place_model := place_model_map.get(place_type.lower()):
+        return place_model.objects.filter(id__in=places.values('id'))
     else:
         return None
 
@@ -61,11 +54,11 @@ def get_places_by_city(city_id: UUID4, place_model):
         return None
 
 
-@place_controller.get('/places/city/{pk}', response={
+@place_controller.get('/places/city/{city_id}', response={
     200: PlaceMixinSchema,
     404: MessageOut
 })
-def get_places_by_city(request, city_id: UUID4, place_type: str, page: int = 1, per_page: int = 10):
+def get_places_by_city_and_type(request, city_id: UUID4, place_type: str = None, subtype: str = None, page: int = 1, per_page: int = 10):
     try:
         city = City.objects.get(id=city_id)
     except City.DoesNotExist:
@@ -74,14 +67,22 @@ def get_places_by_city(request, city_id: UUID4, place_type: str, page: int = 1, 
     places = PlaceMixin.objects.filter(city=city)
 
     if place_type:
-        if filtered_places := filter_by_place_type(places, place_type):
-            return response(status.HTTP_200_OK, filtered_places, paginated=True, per_page=per_page, page=page, )
-        else:
+        places = filter_by_place_type(places, place_type)
+
+        if not places:
             return 404, {'message': 'No places found for the specified type.'}
 
+        if subtype:
+            places = places.filter(type__iexact=subtype)
+
     if places:
-        return response(status.HTTP_200_OK, places, paginated=True, page=page, per_page=per_page, )
+        return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page)
+
     return 404, {'message': 'No places found.'}
+
+
+    return 404, {'message': 'No places found.'}
+
 
 
 advertisement_controller = Router(tags=['Advertisement'])

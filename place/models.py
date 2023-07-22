@@ -77,7 +77,7 @@ class SocialMedia(Entity):
         verbose_name_plural = 'وسائل التواصل الاجتماعي'
 
     @property
-    def social_media_links(self):
+    def is_available(self):
         links = {}
         if self.facebook:
             links['facebook'] = self.facebook
@@ -96,6 +96,11 @@ class Images(Entity):
 
     def __str__(self):
         return f'{self.image}'
+
+    @property
+    def image_url(self):
+        domain = "https://moamel.pythonanywhere.com"  # Replace this with your actual domain
+        return f"{domain}{self.image.url}"
 
     class Meta:
         verbose_name = 'صورة'
@@ -138,9 +143,9 @@ class Restaurant(PlaceMixin):
 
 class StayPlace(PlaceMixin):
     class StayPlaceType(models.TextChoices):
-        Hotel = 'فندق', 'فندق'
-        flat = 'شقق', 'شقق'
-        farm = 'مزرعة', 'مزرعة'
+        Hotel = 'Hotel', 'فندق'
+        flat = 'flat', 'شقق'
+        farm = 'farm', 'مزرعة'
 
     advertisement = GenericRelation('Advertisement', related_query_name='stay_place')
     type = models.CharField('نوع', choices=StayPlaceType.choices, max_length=50, default=StayPlaceType.Hotel)
@@ -159,20 +164,17 @@ class Cafe(PlaceMixin):
 
 
 class TouristPlace(PlaceMixin):
-    CHOICES = (
-        (
-            ('tourist_place  ', (
-                ('مصيف', 'مصيف'),
-                ('متحف', 'متحف'),
-                ('شلال', 'شلال'),
-                ('منتزه', 'منتزه'),
-                ('متحف', 'متحف'),
-                ('معلم حضاري', 'معلم حضاري'),
-            )),
-        ))
+    class TouristPlaceType(models.TextChoices):
+        resort = 'resort', 'مصيف'
+        museum = 'museum', 'متحف'
+        waterfall = 'waterfall', 'شلال'
+        park = 'park', 'منتزه'
+        heritage = 'heritage', 'معلم حضاري'
+
+
 
     advertisement = GenericRelation('Advertisement', related_query_name='tourist_place')
-    type = models.CharField('نوع المكان', choices=CHOICES, max_length=50, )
+    type = models.CharField('نوع المكان', choices=TouristPlaceType.choices, max_length=50, )
 
     class Meta:
         verbose_name = 'مكان سياحي'
@@ -189,9 +191,9 @@ class Mall(PlaceMixin):
 
 class HealthCentre(PlaceMixin):
     class HealthCentreType(models.TextChoices):
-        Hospital = 'مستشفى', 'مستشفى'
-        Clinic = 'عيادة', 'عيادة'
-        Pharmacy = 'صيدلية', 'صيدلية'
+        Hospital = 'Hospital', 'مستشفى'
+        Clinic = 'Clinic', 'عيادة'
+        Pharmacy = 'Pharmacy', 'صيدلية'
 
     advertisement = GenericRelation('Advertisement', related_query_name='health_centre')
     type = models.CharField('نوع المركز', choices=HealthCentreType.choices, max_length=50, )
@@ -203,9 +205,9 @@ class HealthCentre(PlaceMixin):
 
 class HolyPlace(PlaceMixin):
     class HolyPlaceType(models.TextChoices):
-        Mosque = 'مسجد', 'مسجد'
-        Church = 'كنيسة', 'كنيسة'
-        Shrine = 'ضريح', 'ضريح'
+        Mosque = 'Mosque', 'مسجد'
+        Church = 'Church', 'كنيسة'
+        Shrine = 'Shrine', 'ضريح'
 
     advertisement = GenericRelation('Advertisement', related_query_name='holy_place')
     type = models.CharField('نوع المكان', choices=HolyPlaceType.choices, max_length=50, )
@@ -217,9 +219,9 @@ class HolyPlace(PlaceMixin):
 
 class Financial(PlaceMixin):
     class FinancialType(models.TextChoices):
-        Bank = 'بنك', 'بنك'
+        Bank = 'Bank', 'بنك'
         ATM = 'Atm', 'ATM'
-        Exchange = 'صرافة', 'صرافة'
+        Exchange = 'Exchange', 'صرافة'
 
     advertisement = GenericRelation('Advertisement', related_query_name='financial')
     type = models.CharField('نوع المكان', choices=FinancialType.choices, max_length=50, )
@@ -255,8 +257,8 @@ class Gym(PlaceMixin):
 
 class Salons(PlaceMixin):
     class SalonType(models.TextChoices):
-        barber = 'حلاق رجالي', 'حلاق رجالي'
-        salon = 'صالون نسائي', 'صالون نسائي'
+        barber = 'barber', 'حلاق رجالي'
+        salon = 'salon', 'صالون نسائي'
 
     advertisement = GenericRelation('Advertisement', related_query_name='salons')
     type = models.CharField('نوع المكان', choices=SalonType.choices, max_length=50, )

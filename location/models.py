@@ -20,7 +20,7 @@ class Country(Entity):
         AZERBAIJAN = 'AZERBAIJAN', 'اذربيجان'
 
 
-    country_name = models.CharField('اسم الدولة', max_length=50, unique=True, choices=CountryChoices.choices)
+    country_name = models.CharField('اسم الدولة', max_length=50, unique=True, choices=CountryChoices.choices,default=CountryChoices.IRAQ)
 
     def __str__(self):
         return f'{self.country_name}'
