@@ -9,9 +9,9 @@ from django.contrib.auth import logout
 from conf.utils.schemas import MessageOut
 from conf.utils.permissions import AuthBearer, create_token
 from conf.utils.utils import response
-from .models import EmailAccount, ProfileUser
+from .models import EmailAccount
 from .schemas import AccountSignupOut, AccountSignupIn, AccountLoginIn, ChangePassword, AccountOut, AccountUpdateIn, \
-    ImageUpdateIn, AccountUpdateIn2
+    ImageUpdateIn
 
 auth_controller = Router(tags=['Auth'])
 
@@ -146,7 +146,6 @@ def upload_image(request,user_in: ImageUpdateIn ,file: UploadedFile = File(...),
 
 
 
-from django.contrib.auth import logout
 
 
 @auth_controller.post('/logout', auth=AuthBearer(), response={200: MessageOut, 400: MessageOut})

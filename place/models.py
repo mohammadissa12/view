@@ -281,7 +281,7 @@ def set_active(sender, instance, **kwargs):
         instance.is_active = False
 
 
-class Offer(Entity):
+class Offers(Entity):
     country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',
                                 related_name='offers')
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان', related_name='offers',
@@ -302,7 +302,7 @@ class Offer(Entity):
         verbose_name_plural = 'العروض'
 
 
-@receiver(pre_save, sender=Offer)
+@receiver(pre_save, sender=Offers)
 def set_active(sender, instance, **kwargs):
     if instance.end_date < date.today():
         instance.is_active = False
@@ -354,3 +354,45 @@ class FavoritePlaces(Entity):
     class Meta:
         verbose_name = 'مكان مفضل'
         verbose_name_plural = 'اماكن مفضلة'
+
+
+class Company(Entity):
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='company')
+    Company_name = models.CharField('اسم الشركة', max_length=50)
+    image = models.ImageField('الصورة', upload_to='company')
+    short_description = models.CharField('الوصف المختصر', max_length=100)
+
+    def __str__(self):
+        return f'{self.country.country_name}{self.Company_name}'
+
+    class Meta:
+        verbose_name = 'شركة'
+        verbose_name_plural = 'الشركات'
+
+
+class Trip(Entity):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='trip')
+    trip_name = models.CharField('اسم الرحلة', max_length=50)
+    image = models.ImageField('الصورة', upload_to='trip')
+    short_description = models.CharField('الوصف المختصر', max_length=100)
+
+    def __str__(self):
+        return f'{self.company.Company_name}{self.trip_name}'
+
+    class Meta:
+        verbose_name = 'رحلة'
+        verbose_name_plural = 'الرحلات'
+
+
+class TripDetails(Entity):
+    class TripType(models.TextChoices):
+        Family = 'Family', 'عائلة'
+        youth = 'youth', 'شباب'
+
+
+    trip= models.OneToOneField(Trip, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_details')
+    trip_type = models.CharField('نوع الرحلة', max_length=50, choices=TripType.choices)
+    trip_name = models.CharField('اسم الرحلة', max_length=50)
+    trip_days = models.CharField('عدد ايام الرحلة', max_length=50)
+    trip_details = models.TextField('تفاصيل الرحلة', max_length=256)
+    trip_price = models.CharField('سعر الرحلة', max_length=50)

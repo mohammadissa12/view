@@ -18,7 +18,8 @@ from .models import (
     Entertainment,
     Images,
     Reviews,
-    SocialMedia, Advertisement, RecommendedPlaces, LatestPlaces, PlaceMixin, FavoritePlaces, Offer
+    SocialMedia, Advertisement, RecommendedPlaces, LatestPlaces, PlaceMixin, FavoritePlaces, Offers, Company, Trip,
+    TripDetails
 )
 
 
@@ -137,4 +138,7 @@ admin.site.register(Advertisement)
 admin.site.register(LatestPlaces)
 admin.site.register(RecommendedPlaces)
 admin.site.register(FavoritePlaces)
-admin.site.register(Offer)
+admin.site.register(Offers)
+admin.site.register(Company)
+admin.site.register(Trip)
+admin.site.register(TripDetails)

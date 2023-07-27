@@ -321,3 +321,6 @@ def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None
         return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page, )
 
     return 404, {'message': 'No places found.'}
+
+
+

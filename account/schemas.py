@@ -39,12 +39,6 @@ class AccountUpdateIn(Schema):
     image: str = None
 
 
-class AccountUpdateIn2(Schema):
-    email: EmailStr
-    phone_number: int
-
-
-
 class ImageUpdateIn(Schema):
     image: str = None
 
