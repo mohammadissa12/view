@@ -39,10 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'account',
-    'place',
+    # 'place',
     'location',
     'location_field.apps.DefaultConfig',
-
+    'place.apps.ViewConfig',
 ]
 
 MIDDLEWARE = [

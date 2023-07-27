@@ -1,5 +1,5 @@
 from ninja import Schema
-from pydantic import EmailStr, UUID4
+from pydantic import EmailStr, UUID4, HttpUrl
 
 from conf.utils.schemas import Token
 
@@ -9,7 +9,7 @@ class AccountOut(Schema):
     first_name: str
     last_name: str
     phone_number: int
-    image: str = None
+    image_url: HttpUrl = None
 
 
 class AccountSignupIn(Schema):
@@ -39,6 +39,16 @@ class AccountUpdateIn(Schema):
     image: str = None
 
 
+class AccountUpdateIn2(Schema):
+    email: EmailStr
+    phone_number: int
+
+
+
+class ImageUpdateIn(Schema):
+    image: str = None
+
+
 class ChangePassword(Schema):
     old_password: str
     new_password1: str
@@ -46,8 +56,5 @@ class ChangePassword(Schema):
 
 
 class Profile(Schema):
-    id: UUID4
+    id: UUID4 = None
     account: AccountOut
-
-
-

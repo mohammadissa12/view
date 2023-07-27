@@ -11,7 +11,7 @@ from place.models import Advertisement, LatestPlaces, RecommendedPlaces
 from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut
 from .models import Country, City
 from .schemas import *
-from .schemas2 import  CountrySchema2
+from .schemas2 import CountrySchema2, CitySchema2
 
 country_controller = Router(tags=['Location'])
 
@@ -72,10 +72,6 @@ def get_cities_by_country(request, country_id: UUID4, search=None, per_page: int
         return 404, {'message': 'Country not found.'}
 
 
-
-
-
-
 @country_controller.get('/country/{country_name}', response={
     200: CountrySchema2,
     404: MessageOut
@@ -85,3 +81,14 @@ def get_country_by_name(request, country_name: str):
         return get_object_or_404(Country, country_name__iexact=country_name)
     except Country.DoesNotExist:
         return 404, {'message': 'Country not found.'}
+
+
+@country_controller.get('/city/{city_name}', response={
+    200: CitySchema2,
+    404: MessageOut
+})
+def get_city_by_id(request, city_id: UUID4):
+    try:
+        return get_object_or_404(City, id=city_id)
+    except City.DoesNotExist:
+        return 404, {'message': 'City not found.'}

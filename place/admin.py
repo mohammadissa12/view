@@ -1,7 +1,5 @@
 from django.contrib import admin
-from django.contrib.contenttypes.models import ContentType
-from django.utils.html import format_html
-from nested_inline.admin import NestedModelAdmin
+
 
 from location.models import Country
 from .models import (
@@ -13,14 +11,14 @@ from .models import (
     Salons,
     TouristPlace,
     Images,
-    Gym,
+    Sport,
     HolyPlace,
     Financial,
     GasStation,
     Entertainment,
     Images,
     Reviews,
-    SocialMedia, Advertisement, RecommendedPlaces, LatestPlaces, PlaceMixin, FavoritePlaces
+    SocialMedia, Advertisement, RecommendedPlaces, LatestPlaces, PlaceMixin, FavoritePlaces, Offer
 )
 
 
@@ -96,7 +94,7 @@ class TouristPlaceAdmin(BaseModelAdmin):
     pass
 
 
-@admin.register(Gym)
+@admin.register(Sport)
 class GymAdmin(BaseModelAdmin):
     pass
 
@@ -133,24 +131,10 @@ class CountryFilter(admin.SimpleListFilter):
         return queryset.filter(country__id=self.value()) if self.value() else queryset
 
 
-class AdvertisementAdmin(admin.ModelAdmin):
-    list_display = ['country', 'title', 'content_type', 'start_date', 'end_date', 'is_active']
-    list_filter = [CountryFilter, 'is_active']
-    # Specify the fields to be displayed in the change form
-    fields = ['country', 'content_type', 'place','title', 'image', 'short_description', 'url', 'start_date', 'end_date',
-              'is_active']
-
-    # Override the formfield_for_foreignkey method
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'content_type':
-            kwargs['queryset'] = ContentType.objects.filter(model__in=['restaurant', 'cafeteria', 'mall',
-                                                                       'healthcentre', 'salons', 'touristplace',
-                                                                       'gym', 'holyplace', 'financial', 'gasstation',
-                                                                       'entertainment', 'stayplace'])
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-admin.site.register(Advertisement, AdvertisementAdmin)
+admin.site.register(Advertisement)
 admin.site.register(LatestPlaces)
 admin.site.register(RecommendedPlaces)
 admin.site.register(FavoritePlaces)
+admin.site.register(Offer)

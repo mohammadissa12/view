@@ -1,5 +1,4 @@
 from ninja import Router
-
 from account.models import EmailAccount
 from conf.utils import status
 from conf.utils.permissions import AuthBearer
@@ -8,7 +7,6 @@ from conf.utils.utils import response
 from location.models import City, Country
 from .models import *
 from .schemas import *
-
 
 
 def filter_by_place_type(places, place_type):
@@ -23,7 +21,7 @@ def filter_by_place_type(places, place_type):
         'financial': Financial,
         'gasstation': GasStation,
         'entertainment': Entertainment,
-        'gym': Gym,
+        'gym': Sport,
         'salons': Salons,
     }
     if place_model := place_model_map.get(place_type.lower()):
@@ -58,7 +56,8 @@ def get_places_by_city(city_id: UUID4, place_model):
     200: PlaceMixinSchema,
     404: MessageOut
 })
-def get_places_by_city_and_type(request, city_id: UUID4, place_type: str = None, subtype: str = None, page: int = 1, per_page: int = 10):
+def get_places_by_city_and_type(request, city_id: UUID4, place_type: str = None, subtype: str = None, page: int = 1,
+                                per_page: int = 10):
     try:
         city = City.objects.get(id=city_id)
     except City.DoesNotExist:
@@ -81,8 +80,17 @@ def get_places_by_city_and_type(request, city_id: UUID4, place_type: str = None,
     return 404, {'message': 'No places found.'}
 
 
-    return 404, {'message': 'No places found.'}
+@place_controller.get('/reviews/user', response={
+    200: List[PlaceMixinOut],
+    404: MessageOut
+}, auth=AuthBearer())
+def get_places_user_reviewed(request):
+    user = request.auth
 
+    if reviewed_places := PlaceMixin.objects.filter(reviews__user=user):
+        return response(status.HTTP_200_OK, reviewed_places)
+    else:
+        return 404, {'message': 'No reviewed places found for the user.'}
 
 
 advertisement_controller = Router(tags=['Advertisement'])
@@ -98,25 +106,14 @@ def get_advertisement_by_country(request, country_id: UUID4, ):
     return 404, {'message': 'No advertisement found.'}
 
 
-@advertisement_controller.get('/advertisement/content_type/{model}/{country_id}', response={
+@advertisement_controller.get('/advertisement/city/{city_id}', response={
     200: List[AdvertisementSchema],
     404: MessageOut
 })
-def get_advertisement_by_content_type(request, model: str, country_id: UUID4):
-    try:
-        content_type = ContentType.objects.get(model=model)
-    except ContentType.DoesNotExist:
-        return 404, {'message': 'Content type not found.'}
-
-    try:
-        country = Country.objects.get(id=country_id)
-    except Country.DoesNotExist:
-        return 404, {'message': 'Country not found.'}
-
-    if advertisements := Advertisement.objects.filter(content_type=content_type, country=country):
-        return response(status.HTTP_200_OK, advertisements)
-
-    return 404, {'message': 'No advertisements found for the specified content type and country.'}
+def get_advertisement_by_city(request, city_id: UUID4):
+    if advertisement := Advertisement.objects.filter(city_id=city_id):
+        return response(status.HTTP_200_OK, advertisement)
+    return 404, {'message': 'No advertisement found.'}
 
 
 RecommendedPlaces_controller = Router(tags=['Recommended Places'])
@@ -146,11 +143,27 @@ def get_latest_places_by_country(request, country_id: UUID4):
         country = Country.objects.get(id=country_id)
         if latest_places := LatestPlaces.objects.filter(
                 country=country
-        ).order_by('-created')[:5]:
+        ).order_by('-created')[:40]:
             return response(status.HTTP_200_OK, latest_places)
         return 404, {'message': 'No latest places found.'}
     except Country.DoesNotExist:
         return 404, {'message': 'Country not found.'}
+
+
+@latest_places_controller.get('/latest-places/city/{city_id}', response={
+    200: List[LatestPlacesCity],
+    404: MessageOut
+})
+def get_latest_places_by_city(request, city_id: UUID4):
+    try:
+        city = City.objects.get(id=city_id)
+        if latest_places := LatestPlaces.objects.filter(
+                city=city
+        ).order_by('-created')[:40]:
+            return response(status.HTTP_200_OK, latest_places)
+        return 404, {'message': 'No latest places found.'}
+    except City.DoesNotExist:
+        return 404, {'message': 'City not found.'}
 
 
 favorite_places_controller = Router(tags=['favorite places'])
@@ -203,17 +216,28 @@ review_controller = Router(tags=['Reviews'])
 @review_controller.get('/reviews/{place_id}', response={
     200: List[ReviewsSchema],
     404: MessageOut
-})
+}, auth=AuthBearer())
 def get_reviews_by_place(request, place_id: UUID4):
+    user = request.auth
+
     try:
-        if reviews := Reviews.objects.filter(place_id=place_id):
-            return response(status.HTTP_200_OK, reviews)
-        return 404, {'message': 'No reviews found for the specified place.'}
+        reviews = Reviews.objects.filter(place_id=place_id)
+
+        if not reviews.exists():
+            return 404, {'message': 'No reviews found for the specified place.'}
+
+        if user_review := reviews.filter(user=user).first():
+            reviews = [user_review] + [review for review in reviews if review != user_review]
+        else:
+            # If the user doesn't have a review, simply sort by the 'created_at' field
+            reviews = reviews.order_by('-created')
+
+        return response(status.HTTP_200_OK, reviews)
     except Reviews.DoesNotExist:
         return 404, {'message': 'Place not found.'}
 
 
-@review_controller.post('/', response={201: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
+@review_controller.post('/', response={200: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
 def create_review(request, review_data: ReviewsIn, place_id: UUID4):
     user = request.auth
 
@@ -228,7 +252,7 @@ def create_review(request, review_data: ReviewsIn, place_id: UUID4):
         comment=review_data.comment,
         rating=review_data.rating
     )
-    return response(status.HTTP_201_CREATED, review)
+    return response(status.HTTP_200_OK, review)
 
 
 @review_controller.delete('/remove', response={200: MessageOut, 404: MessageOut}, auth=AuthBearer())
@@ -289,7 +313,7 @@ def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None
 
     if place_type:
         if filtered_places := filter_by_place_type(places, place_type):
-            return response(status.HTTP_200_OK, filtered_places, paginated=True, per_page=per_page, page=page,)
+            return response(status.HTTP_200_OK, filtered_places, paginated=True, per_page=per_page, page=page, )
         else:
             return 404, {'message': 'No places found for the specified type.'}
 

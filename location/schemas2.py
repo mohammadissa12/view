@@ -1,13 +1,11 @@
 from typing import List
-
-from ninja import Schema, ModelSchema
-from ninja.orm import create_schema
+from ninja import Schema
 from pydantic import UUID4
-
-from location.models import Country
+from django.db.models import Subquery, OuterRef, FloatField, Avg
+from location.models import Country, City
 from location.schemas import CountryOut, CityOut
-from place.models import Advertisement
-from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut
+from place.models import Advertisement, PlaceMixin, Reviews
+from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut, PlaceMixinOut, OfferSchema
 
 
 class CountrySchema2(Schema):
@@ -17,6 +15,7 @@ class CountrySchema2(Schema):
     advertisements: List[AdvertisementSchema]
     recommended_places: List[RecommendedPlacesOut]
     latest_places: List[LatestPlacesOut]
+    offers: List[OfferSchema]
 
     @staticmethod
     def from_orm(country: Country):
@@ -26,5 +25,28 @@ class CountrySchema2(Schema):
             cities=[CityOut.from_orm(city) for city in country.get_cities],
             advertisements=[AdvertisementSchema.from_orm(ad) for ad in country.get_advertisements],
             recommended_places=[RecommendedPlacesOut.from_orm(place) for place in country.get_recommended_places],
-            latest_places=[LatestPlacesOut.from_orm(place) for place in country.get_latest_places]
+            latest_places=[LatestPlacesOut.from_orm(place) for place in country.get_latest_places],
+            offers=[OfferSchema.from_orm(offer) for offer in country.get_offers],
+        )
+
+
+class CitySchema2(Schema):
+    city_id: UUID4 = None
+    city_name: str
+    country: CountryOut
+    advertisements: List[AdvertisementSchema]
+    latest_places: List[LatestPlacesOut]
+    highest_rated_places: List[PlaceMixinOut]
+
+
+    @staticmethod
+    def from_orm(city:City):
+
+        return CitySchema2(
+            city_id=city.id,
+            city_name=city.city_name,
+            country=CountryOut.from_orm(city.country),
+            advertisements=[AdvertisementSchema.from_orm(ad) for ad in city.get_advertisements],
+            latest_places=[LatestPlacesOut.from_orm(place) for place in city.get_latest_places],
+            highest_rated_places=[PlaceMixinOut.from_orm(place) for place in city.get_high_rated],
         )

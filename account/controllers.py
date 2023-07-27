@@ -9,8 +9,9 @@ from django.contrib.auth import logout
 from conf.utils.schemas import MessageOut
 from conf.utils.permissions import AuthBearer, create_token
 from conf.utils.utils import response
-from .models import EmailAccount
-from .schemas import AccountSignupOut, AccountSignupIn, AccountLoginIn, ChangePassword, AccountOut, AccountUpdateIn
+from .models import EmailAccount, ProfileUser
+from .schemas import AccountSignupOut, AccountSignupIn, AccountLoginIn, ChangePassword, AccountOut, AccountUpdateIn, \
+    ImageUpdateIn, AccountUpdateIn2
 
 auth_controller = Router(tags=['Auth'])
 
@@ -92,7 +93,7 @@ def profile(request):
 @auth_controller.put('/profile',
                      auth=AuthBearer(),
                      response={200: AccountOut, 400: MessageOut})
-def update_profile(request, user_in: AccountUpdateIn):
+def update_profile(request, user_in: AccountUpdateIn, ):
     try:
         user = get_object_or_404(EmailAccount, id=request.auth.id)
     except Exception:
@@ -102,14 +103,47 @@ def update_profile(request, user_in: AccountUpdateIn):
         user.first_name = user_in.first_name
     if user_in.last_name:
         user.last_name = user_in.last_name
-    if user_in.email:
-        user.email = user_in.email
-    if user_in.phone_number:
-        user.phone_number = user_in.phone_number
+
 
     user.save()
 
     return response(HTTPStatus.OK, user)
+
+@auth_controller.put('/profile/email_and_phone',
+                     auth=AuthBearer(),
+                     response={200: AccountOut, 400: MessageOut})
+def update_email_phone(request, user_in: AccountUpdateIn, ):
+    try:
+        user = get_object_or_404(EmailAccount, id=request.auth.id)
+    except Exception:
+        return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
+
+    if user_in.phone_number:
+        user.phone_number = user_in.phone_number
+    if user_in.email:
+        user.email = user_in.email
+
+
+    user.save()
+
+    return response(HTTPStatus.OK, user)
+
+
+'''image upload if already have image delete the old one '''
+@auth_controller.post('/profile/image', auth=AuthBearer(), response={200: AccountOut, 400: MessageOut})
+def upload_image(request,user_in: ImageUpdateIn ,file: UploadedFile = File(...), ):
+    '''delete the old image if exist'''
+    try:
+        user = get_object_or_404(EmailAccount, id=request.auth.id)
+    except Exception:
+        return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
+    if user.image:
+        user.image.delete()
+
+    user.image = file
+    user.save()
+    return response(HTTPStatus.OK, user)
+
 
 
 from django.contrib.auth import logout
@@ -120,3 +154,7 @@ def user_logout(request):
     logout(request)
     request.session.flush()  # Delete the session data
     return response(HTTPStatus.OK, {'message': 'Logged out and session deleted successfully'})
+
+
+
+

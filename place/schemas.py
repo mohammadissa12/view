@@ -1,14 +1,12 @@
-from datetime import date
-
 from ninja import Schema
-from pydantic import UUID4, Field, BaseModel
-from typing import List, Optional, Dict
+from pydantic import UUID4
+from typing import List, Optional
 from pydantic import HttpUrl
 
-from account.schemas import Profile, AccountOut
+from account.schemas import  AccountOut
 from location.schemas import CityOut, CountryOut
 from place.models import PlaceMixin, StayPlace, TouristPlace, HealthCentre, HolyPlace, Financial, GasStation, \
-    Entertainment, Gym, Salons, Restaurant, Cafe, Mall
+    Entertainment, Sport, Salons, Restaurant, Cafe, Mall
 
 
 class SocialMediaSchema(Schema):
@@ -16,13 +14,14 @@ class SocialMediaSchema(Schema):
     instagram: str = None
     telegram: str = None
     whatsapp: str = None
-    is_available: Dict[str, str] = None
+    is_available: List[str] = None
 
 
 class PlaceImageOut(Schema):
     id: UUID4
     image: str
     image_url: HttpUrl
+
 
 class PlaceMixinOut(Schema):
     id: UUID4
@@ -33,20 +32,21 @@ class PlaceMixinOut(Schema):
     latitude: float
     description: str
     short_location: str
+    price: Optional[float]
     place_images: List[PlaceImageOut]
     social_media: Optional[SocialMediaSchema]
     type: Optional[str]
     subtype: Optional[str]
     average_rating: Optional[float]
     review_count: Optional[int]
+    available: Optional[str]
 
 
     class Config:
         orm_mode = True
 
-
     @staticmethod
-    def from_orm( place: PlaceMixin):
+    def from_orm(place: PlaceMixin):
         is_available = place.get_social_media
 
         if isinstance(place, Restaurant):
@@ -80,7 +80,7 @@ class PlaceMixinOut(Schema):
         elif isinstance(place, Entertainment):
             place_type = "Entertainment"
             place_subtype = None  # Entertainment doesn't have a subtype field
-        elif isinstance(place, Gym):
+        elif isinstance(place, Sport):
             place_type = "Gym"
             place_subtype = None  # Gym doesn't have a subtype field
         elif isinstance(place, Salons):
@@ -89,7 +89,6 @@ class PlaceMixinOut(Schema):
         else:
             place_type = "PlaceMixin"  # Default type for the base class
             place_subtype = None  # Default subtype if not applicable
-
 
         return PlaceMixinOut(
             id=place.id,
@@ -104,8 +103,11 @@ class PlaceMixinOut(Schema):
             review_count=place.review_count,
             social_media=is_available,
             type=place_type,
-            subtype=place_subtype
+            subtype=place_subtype,
+            price=place.price,
+            avaialble=place.available
         )
+
 
 class PlaceMixinSchema(Schema):
     total_count: int = None
@@ -132,27 +134,23 @@ class ReviewsIn(Schema):
     rating: int
 
 
-class ContentTypeOut(Schema):
-    app_label: str
-    model: str
-
-    class Config:
-        orm_mode = True
-
-
 class AdvertisementSchema(Schema):
     id: UUID4
     country: CountryOut
-    content_type: ContentTypeOut = None
     image: str
     title: str
     short_description: str
     url: str = None
     place: PlaceMixinOut = None
-    start_date: date
-    end_date: date
-    is_active: bool
 
+class OfferSchema(Schema):
+    id: UUID4
+    country: CountryOut
+    image: str
+    title: str
+    short_description: str
+    url: str = None
+    place: PlaceMixinOut = None
 
 class RecommendedPlacesOut(Schema):
     id: UUID4
@@ -163,6 +161,12 @@ class RecommendedPlacesOut(Schema):
 class LatestPlacesOut(Schema):
     id: UUID4
     country: CountryOut
+    place: PlaceMixinOut
+
+
+class LatestPlacesCity(Schema):
+    id: UUID4
+    city: CityOut
     place: PlaceMixinOut
 
 

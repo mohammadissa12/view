@@ -1,10 +1,8 @@
 from datetime import date
-from typing import List
 
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.fields import GenericRelation
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from PIL import Image
 from django.db import models
@@ -17,13 +15,14 @@ User = get_user_model()
 
 
 class PlaceMixin(Entity):
-    city = models.ForeignKey('location.City', on_delete=models.CASCADE,related_name='city_places')
-    name = models.CharField('الاسم', max_length=50,)
+    city = models.ForeignKey('location.City', on_delete=models.CASCADE, related_name='city_places')
+    name = models.CharField('الاسم', max_length=50, )
     description = models.TextField('الوصف', )
     phone_number = models.CharField('رقم الهاتف', max_length=50, null=True, blank=True)
     short_location = models.CharField('الموقع', max_length=50, )
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661')
-
+    price = models.CharField('السعر', max_length=50, null=True, blank=True)
+    available = models.CharField('المتاح', max_length=50, null=True, blank=True)
     def get_average_rating(self) -> float:
         return Reviews.objects.filter(place=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
 
@@ -64,30 +63,38 @@ class PlaceMixin(Entity):
         except SocialMedia.DoesNotExist:
             return None
 
+
 class SocialMedia(Entity):
-    place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True, blank=True)
+    place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True,
+                                 blank=True)
     facebook = models.CharField('فيسبوك', null=True, blank=True, max_length=50)
     instagram = models.CharField('انستغرام', null=True, blank=True, max_length=50)
     telegram = models.CharField('تليجرام', null=True, blank=True, max_length=50)
     whatsapp = models.CharField('واتساب', null=True, blank=True, max_length=50)
 
-
     class Meta:
         verbose_name = 'وسائل التواصل الاجتماعي'
         verbose_name_plural = 'وسائل التواصل الاجتماعي'
 
+    SOCIAL_MEDIA_APPS = {
+        'facebook': 'facebook',
+        'instagram': 'instagram',
+        'telegram': 'telegram',
+        'whatsapp': 'whatsapp',
+    }
+
     @property
     def is_available(self):
-        links = {}
+        available_apps = []
         if self.facebook:
-            links['facebook'] = self.facebook
+            available_apps.append(self.SOCIAL_MEDIA_APPS['facebook'])
         if self.instagram:
-            links['instagram'] = self.instagram
+            available_apps.append(self.SOCIAL_MEDIA_APPS['instagram'])
         if self.telegram:
-            links['telegram'] = self.telegram
+            available_apps.append(self.SOCIAL_MEDIA_APPS['telegram'])
         if self.whatsapp:
-            links['whatsapp'] = self.whatsapp
-        return links
+            available_apps.append(self.SOCIAL_MEDIA_APPS['whatsapp'])
+        return available_apps
 
 
 class Images(Entity):
@@ -133,12 +140,9 @@ class Reviews(Entity):
 
 
 class Restaurant(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='restaurant')
-
     class Meta:
         verbose_name = 'مطعم'
         verbose_name_plural = 'مطاعم'
-
 
 
 class StayPlace(PlaceMixin):
@@ -146,8 +150,8 @@ class StayPlace(PlaceMixin):
         Hotel = 'Hotel', 'فندق'
         flat = 'flat', 'شقق'
         farm = 'farm', 'مزرعة'
+        chalet = 'chalet', 'شاليه'
 
-    advertisement = GenericRelation('Advertisement', related_query_name='stay_place')
     type = models.CharField('نوع', choices=StayPlaceType.choices, max_length=50, default=StayPlaceType.Hotel)
 
     class Meta:
@@ -156,34 +160,18 @@ class StayPlace(PlaceMixin):
 
 
 class Cafe(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='cafeteria')
-
     class Meta:
         verbose_name = 'كافيه'
         verbose_name_plural = 'كافيهات'
 
 
 class TouristPlace(PlaceMixin):
-    class TouristPlaceType(models.TextChoices):
-        resort = 'resort', 'مصيف'
-        museum = 'museum', 'متحف'
-        waterfall = 'waterfall', 'شلال'
-        park = 'park', 'منتزه'
-        heritage = 'heritage', 'معلم حضاري'
-
-
-
-    advertisement = GenericRelation('Advertisement', related_query_name='tourist_place')
-    type = models.CharField('نوع المكان', choices=TouristPlaceType.choices, max_length=50, )
-
     class Meta:
         verbose_name = 'مكان سياحي'
         verbose_name_plural = 'أماكن سياحية'
 
 
 class Mall(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='mall')
-
     class Meta:
         verbose_name = 'مول'
         verbose_name_plural = 'مولات'
@@ -195,7 +183,6 @@ class HealthCentre(PlaceMixin):
         Clinic = 'Clinic', 'عيادة'
         Pharmacy = 'Pharmacy', 'صيدلية'
 
-    advertisement = GenericRelation('Advertisement', related_query_name='health_centre')
     type = models.CharField('نوع المركز', choices=HealthCentreType.choices, max_length=50, )
 
     class Meta:
@@ -209,7 +196,6 @@ class HolyPlace(PlaceMixin):
         Church = 'Church', 'كنيسة'
         Shrine = 'Shrine', 'ضريح'
 
-    advertisement = GenericRelation('Advertisement', related_query_name='holy_place')
     type = models.CharField('نوع المكان', choices=HolyPlaceType.choices, max_length=50, )
 
     class Meta:
@@ -220,10 +206,9 @@ class HolyPlace(PlaceMixin):
 class Financial(PlaceMixin):
     class FinancialType(models.TextChoices):
         Bank = 'Bank', 'بنك'
-        ATM = 'Atm', 'ATM'
         Exchange = 'Exchange', 'صرافة'
+        Outlet = 'Outlet', 'منفذ'
 
-    advertisement = GenericRelation('Advertisement', related_query_name='financial')
     type = models.CharField('نوع المكان', choices=FinancialType.choices, max_length=50, )
 
     class Meta:
@@ -232,23 +217,22 @@ class Financial(PlaceMixin):
 
 
 class GasStation(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='gas_station')
-
     class Meta:
         verbose_name = 'محطة وقود'
         verbose_name_plural = 'محطات وقود'
 
 
 class Entertainment(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='entertainment')
-
     class Meta:
         verbose_name = ' مكان ترفيهي'
         verbose_name_plural = 'اماكن ترفيهية'
 
 
-class Gym(PlaceMixin):
-    advertisement = GenericRelation('Advertisement', related_query_name='gym')
+class Sport(PlaceMixin):
+    class SportType(models.TextChoices):
+        Gym = 'Gym', 'نادي رياضي'
+
+    type = models.CharField('نوع المكان', choices=SportType.choices, max_length=50, )
 
     class Meta:
         verbose_name = 'مكان رياضي'
@@ -260,7 +244,6 @@ class Salons(PlaceMixin):
         barber = 'barber', 'حلاق رجالي'
         salon = 'salon', 'صالون نسائي'
 
-    advertisement = GenericRelation('Advertisement', related_query_name='salons')
     type = models.CharField('نوع المكان', choices=SalonType.choices, max_length=50, )
 
     class Meta:
@@ -269,14 +252,17 @@ class Salons(PlaceMixin):
 
 
 class Advertisement(Entity):
-    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='advertisements' )
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name='نوع المكان', null=True,
-                                     blank=True)
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',
+                                related_name='advertisements')
+    city = models.ForeignKey('location.City', on_delete=models.CASCADE, verbose_name='المدينة',
+                             related_name='advertisements', blank=True, null=True)
+
+    place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان',
+                              related_name='advertisements', blank=True, null=True)
     image = models.ImageField('الصورة', upload_to='advertisements')
     title = models.CharField('العنوان', max_length=50)
     short_description = models.CharField('الوصف المختصر', max_length=100)
     url = models.URLField('الرابط', max_length=100, blank=True, null=True)
-    place = models.ForeignKey('PlaceMixin', on_delete=models.CASCADE, verbose_name='المكان', null=True, blank=True)
     start_date = models.DateField('تاريخ البداية')
     end_date = models.DateField('تاريخ النهاية', )
     is_active = models.BooleanField('مفعل', default=False)
@@ -295,8 +281,36 @@ def set_active(sender, instance, **kwargs):
         instance.is_active = False
 
 
+class Offer(Entity):
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',
+                                related_name='offers')
+    place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان', related_name='offers',
+                              blank=True, null=True)
+    image = models.ImageField('الصورة', upload_to='offers')
+    title = models.CharField('العنوان', max_length=50)
+    short_description = models.CharField('الوصف المختصر', max_length=100)
+    url = models.URLField('الرابط', max_length=100, blank=True, null=True)
+    start_date = models.DateField('تاريخ البداية')
+    end_date = models.DateField('تاريخ النهاية', )
+    is_active = models.BooleanField('مفعل', default=False)
+
+    def __str__(self):
+        return f'{self.title} '
+
+    class Meta:
+        verbose_name = 'عرض'
+        verbose_name_plural = 'العروض'
+
+
+@receiver(pre_save, sender=Offer)
+def set_active(sender, instance, **kwargs):
+    if instance.end_date < date.today():
+        instance.is_active = False
+
+
 class RecommendedPlaces(Entity):
-    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='recommended_places' )
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',
+                                related_name='recommended_places')
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان')
 
     def __str__(self):
@@ -309,7 +323,10 @@ class RecommendedPlaces(Entity):
 
 class LatestPlaces(Entity):
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان')
-    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='latest_places' )
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',
+                                related_name='latest_places')
+    city = models.ForeignKey('location.City', on_delete=models.CASCADE, verbose_name='المدينة',
+                             related_name='latest_places', null=True, blank=True)
 
     def __str__(self):
         return f'{self.place.name}'
@@ -317,6 +334,13 @@ class LatestPlaces(Entity):
     class Meta:
         verbose_name = 'احدث الاماكن'
         verbose_name_plural = 'احدث الاماكن'
+
+
+@receiver(post_save)
+def latest_place_handler(sender, instance, created, **kwargs):
+    if issubclass(sender, PlaceMixin) and created:
+        country = instance.city.country if instance.city else None
+        LatestPlaces.objects.create(place=instance, country=country, city=instance.city)
 
 
 class FavoritePlaces(Entity):

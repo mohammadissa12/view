@@ -14,7 +14,6 @@ geographiclib==2.0
 gprof2dot==2022.7.29
 idna==3.4
 Pillow==9.5.0
-PyArabic==0.6.15
 pyasn1==0.5.0
 pycodestyle==2.10.0
 pydantic==1.10.7
