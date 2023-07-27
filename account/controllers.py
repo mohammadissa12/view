@@ -5,6 +5,9 @@ from ninja import Router, File
 from http import HTTPStatus
 from ninja.files import UploadedFile
 from django.contrib.auth import logout
+from PIL import Image
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from conf.utils.schemas import MessageOut
 from conf.utils.permissions import AuthBearer, create_token
@@ -31,11 +34,11 @@ def signup(request, payload: AccountSignupIn):
 
     except EmailAccount.DoesNotExist:
         if user := EmailAccount.objects.create_user(
-            first_name=payload.first_name,
-            last_name=payload.last_name,
-            email=payload.email,
-            phone_number=payload.phone_number,
-            password=payload.password1,
+                first_name=payload.first_name,
+                last_name=payload.last_name,
+                email=payload.email,
+                phone_number=payload.phone_number,
+                password=payload.password1,
         ):
             user.phone_number = payload.phone_number
             user.save()
@@ -104,10 +107,10 @@ def update_profile(request, user_in: AccountUpdateIn, ):
     if user_in.last_name:
         user.last_name = user_in.last_name
 
-
     user.save()
 
     return response(HTTPStatus.OK, user)
+
 
 @auth_controller.put('/profile/email_and_phone',
                      auth=AuthBearer(),
@@ -123,27 +126,56 @@ def update_email_phone(request, user_in: AccountUpdateIn, ):
     if user_in.email:
         user.email = user_in.email
 
-
     user.save()
 
     return response(HTTPStatus.OK, user)
 
 
-'''image upload if already have image delete the old one '''
+
+
+ALLOWED_IMAGE_FORMATS = ['PNG', 'JPEG', 'JPG', 'HEIC']
+
+def convert_png_to_jpg(png_data):
+    image = Image.open(BytesIO(png_data))
+    output_io = BytesIO()
+    image.convert('RGB').save(output_io, format='JPEG')
+    return output_io.getvalue()
+
 @auth_controller.post('/profile/image', auth=AuthBearer(), response={200: AccountOut, 400: MessageOut})
-def upload_image(request,user_in: ImageUpdateIn ,file: UploadedFile = File(...), ):
-    '''delete the old image if exist'''
+def upload_image(request, file: UploadedFile = File(...)):
     try:
         user = get_object_or_404(EmailAccount, id=request.auth.id)
     except Exception:
         return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
+
     if user.image:
         user.image.delete()
 
-    user.image = file
+    # Convert PNG to JPG format if necessary
+    if file.content_type == 'image/png':
+        image_data = convert_png_to_jpg(file.read())
+        file_name = f'{file.name.split(".")[0]}.jpg'  # Change the file name extension to '.jpg'
+        content_type = 'image/jpeg'
+    elif file.content_type not in [f'image/{fmt.lower()}' for fmt in ALLOWED_IMAGE_FORMATS]:
+        return response(HTTPStatus.BAD_REQUEST, {'message': 'Invalid image format. Only PNG and JPG formats are allowed.'})
+    else:
+        image_data = file.read()
+        file_name = file.name
+        content_type = file.content_type
+
+    # Create a new InMemoryUploadedFile with the updated image data
+    updated_file = InMemoryUploadedFile(
+        file=BytesIO(image_data),
+        field_name=file.field_name,
+        name=file_name,
+        content_type=content_type,
+        size=len(image_data),
+        charset=file.charset,
+    )
+
+    user.image = updated_file
     user.save()
     return response(HTTPStatus.OK, user)
-
 
 
 
@@ -153,7 +185,3 @@ def user_logout(request):
     logout(request)
     request.session.flush()  # Delete the session data
     return response(HTTPStatus.OK, {'message': 'Logged out and session deleted successfully'})
-
-
-
-
