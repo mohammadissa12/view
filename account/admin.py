@@ -6,3 +6,4 @@ from .models import *
 admin.site.register(EmailAccount)
 
 admin.site.register(ProfileUser)
+admin.site.register(AppDetails)

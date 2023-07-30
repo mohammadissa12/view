@@ -21,7 +21,7 @@ class PlaceMixin(Entity):
     phone_number = models.CharField('رقم الهاتف', max_length=50, null=True, blank=True)
     short_location = models.CharField('الموقع', max_length=50, )
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661')
-    price = models.CharField('السعر', max_length=50, null=True, blank=True)
+    price = models.FloatField('السعر', max_length=50, null=True, blank=True)
     available = models.CharField('المتاح', max_length=50, null=True, blank=True)
     def get_average_rating(self) -> float:
         return Reviews.objects.filter(place=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
@@ -177,13 +177,13 @@ class Mall(PlaceMixin):
         verbose_name_plural = 'مولات'
 
 
-class HealthCentre(PlaceMixin):
-    class HealthCentreType(models.TextChoices):
+class HealthCenter(PlaceMixin):
+    class HealthCenterType(models.TextChoices):
         Hospital = 'Hospital', 'مستشفى'
         Clinic = 'Clinic', 'عيادة'
         Pharmacy = 'Pharmacy', 'صيدلية'
 
-    type = models.CharField('نوع المركز', choices=HealthCentreType.choices, max_length=50, )
+    type = models.CharField('نوع المركز', choices=HealthCenterType.choices, max_length=50, )
 
     class Meta:
         verbose_name = 'مركز صحي'
@@ -231,7 +231,7 @@ class Entertainment(PlaceMixin):
 class Sport(PlaceMixin):
     class SportType(models.TextChoices):
         Gym = 'Gym', 'نادي رياضي'
-
+        gaming = 'gaming', 'صالة العاب'
     type = models.CharField('نوع المكان', choices=SportType.choices, max_length=50, )
 
     class Meta:

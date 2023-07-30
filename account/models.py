@@ -11,7 +11,7 @@ class EmailAccountManager(UserManager):
         case_insensitive_username_field = f'{self.model.USERNAME_FIELD}__iexact'
         return self.get(**{case_insensitive_username_field: username})
 
-    def create_user(self,first_name, last_name, phone_number, password=None, **extra_fields):
+    def create_user(self, first_name, last_name, phone_number, password=None, **extra_fields):
         if not phone_number:
             raise ValueError('user must have an phone_number to register')
 
@@ -72,7 +72,6 @@ class EmailAccount(AbstractUser, Entity):
         )
 
 
-
 class ProfileUser(Entity):
     user = models.OneToOneField(EmailAccount, on_delete=models.CASCADE)
 
@@ -100,3 +99,9 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         ProfileUser.objects.create(user=instance)
 
+
+class AppDetails(Entity):
+    app_version = models.CharField('رقم الاصدار التطبيق', max_length=100)
+
+    def __str__(self):
+        return self.app_version

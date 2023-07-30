@@ -4,7 +4,7 @@ from django.contrib.admin import RelatedOnlyFieldListFilter
 # Register your models here.
 from location.models import Country, City
 from place.admin import PlaceMixinInline
-from place.models import StayPlace, Restaurant, Cafe, Mall, HealthCentre, Salons, TouristPlace, Sport, HolyPlace, \
+from place.models import StayPlace, Restaurant, Cafe, Mall, HealthCenter, Salons, TouristPlace, Sport, HolyPlace, \
     Financial, GasStation, Entertainment
 
 
@@ -25,7 +25,7 @@ class MallInline(PlaceMixinInline):
 
 
 class HealthCentreInline(PlaceMixinInline):
-    model = HealthCentre
+    model = HealthCenter
 
 
 class SalonsInline(PlaceMixinInline):

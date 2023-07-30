@@ -7,7 +7,7 @@ from .models import (
     Restaurant,
     Cafe,
     Mall,
-    HealthCentre,
+    HealthCenter,
     Salons,
     TouristPlace,
     Images,
@@ -80,7 +80,7 @@ class MallAdmin(BaseModelAdmin):
     pass
 
 
-@admin.register(HealthCentre)
+@admin.register(HealthCenter)
 class HealthCentreAdmin(BaseModelAdmin):
     pass
 

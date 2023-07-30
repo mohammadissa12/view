@@ -1,3 +1,4 @@
+from django.db.models import F
 from ninja import Router
 from account.models import EmailAccount
 from conf.utils import status
@@ -16,7 +17,7 @@ def filter_by_place_type(places, place_type):
         'cafe': Cafe,
         'touristplace': TouristPlace,
         'mall': Mall,
-        'healthcentre': HealthCentre,
+        'healthcentre': HealthCenter,
         'holyplace': HolyPlace,
         'financial': Financial,
         'gasstation': GasStation,
@@ -57,7 +58,7 @@ def get_places_by_city(city_id: UUID4, place_model):
     404: MessageOut
 })
 def get_places_by_city_and_type(request, city_id: UUID4, place_type: str = None, subtype: str = None, page: int = 1,
-                                per_page: int = 10):
+                                per_page: int = 10,sort_by_price: str = None):
     try:
         city = City.objects.get(id=city_id)
     except City.DoesNotExist:
@@ -73,6 +74,12 @@ def get_places_by_city_and_type(request, city_id: UUID4, place_type: str = None,
 
         if subtype:
             places = places.filter(type__iexact=subtype)
+
+    if sort_by_price == "low":
+        places = places.order_by('price')
+    elif sort_by_price == "high":
+        places = places.order_by(F('price').desc())
+
 
     if places:
         return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page)

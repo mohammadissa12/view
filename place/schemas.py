@@ -5,7 +5,7 @@ from pydantic import HttpUrl
 
 from account.schemas import  AccountOut
 from location.schemas import CityOut, CountryOut
-from place.models import PlaceMixin, StayPlace, TouristPlace, HealthCentre, HolyPlace, Financial, GasStation, \
+from place.models import PlaceMixin, StayPlace, TouristPlace, HealthCenter, HolyPlace, Financial, GasStation, \
     Entertainment, Sport, Salons, Restaurant, Cafe, Mall
 
 
@@ -32,7 +32,7 @@ class PlaceMixinOut(Schema):
     latitude: float
     description: str
     short_location: str
-    price: Optional[str]
+    price: Optional[float]
     place_images: List[PlaceImageOut]
     social_media: Optional[SocialMediaSchema]
     type: Optional[str]
@@ -65,7 +65,7 @@ class PlaceMixinOut(Schema):
         elif isinstance(place, Mall):
             place_type = "Mall"
             place_subtype = None  # Mall doesn't have a subtype field
-        elif isinstance(place, HealthCentre):
+        elif isinstance(place, HealthCenter):
             place_type = "HealthCentre"
             place_subtype = place.type
         elif isinstance(place, HolyPlace):

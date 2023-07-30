@@ -54,3 +54,7 @@ class ChangePassword(Schema):
 class Profile(Schema):
     id: UUID4
     account: AccountOut
+
+
+class AppDetails(Schema):
+    app_version: str = None
