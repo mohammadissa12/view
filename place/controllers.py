@@ -213,26 +213,26 @@ def remove_favorite_place(request, place_id: UUID4):
 review_controller = Router(tags=['Reviews'])
 
 
+
 @review_controller.get('/reviews/{place_id}', response={
     200: List[ReviewsSchema],
     404: MessageOut
-}, auth=AuthBearer())
-def get_reviews_by_place(request, place_id: UUID4):
-    user = request.auth
-
+})
+def get_reviews_by_place(request, place_id: UUID4, user_id: UUID4):
     try:
         reviews = Reviews.objects.filter(place_id=place_id)
 
         if not reviews.exists():
             return 404, {'message': 'No reviews found for the specified place.'}
 
-        if user_review := reviews.filter(user=user).first():
+        if user_review := reviews.filter(user_id=user_id).first():
+            # If the user has a review, put it at the beginning of the list
             reviews = [user_review] + [review for review in reviews if review != user_review]
         else:
-            # If the user doesn't have a review, simply sort by the 'created_at' field
             reviews = reviews.order_by('-created')
 
-        return response(status.HTTP_200_OK, reviews)
+        return reviews
+
     except Reviews.DoesNotExist:
         return 404, {'message': 'Place not found.'}
 
@@ -292,7 +292,7 @@ def report_comment(request, comment_id: UUID4):
 search_controller = Router(tags=['Search'])
 
 
-@search_controller.get('/places/search/{pk}', response={
+@search_controller.get('/places/search', response={
     200: PlaceMixinSchema,
     404: MessageOut
 })
@@ -323,4 +323,50 @@ def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None
     return 404, {'message': 'No places found.'}
 
 
+trip_controller = Router(tags=['Trips'])
 
+
+@trip_controller.get('/company/{company_id}', response={
+    200: CompanyWithTripsOut,
+    404: MessageOut
+})
+def get_trips_by_company(request, company_id: UUID4):
+    try:
+        company = Company.objects.get(id=company_id)
+        trips = Trip.objects.filter(company_id=company_id)
+
+        if not trips.exists():
+            return 404, {'message': 'No trips found for the specified company.'}
+
+        trip_out_list = [TripOut.from_orm(trip) for trip in trips]
+
+        company_out = CompanyOut(
+            id=company.id,
+            country=CountryOut.from_orm(company.country),
+            company_name=company.company_name,
+            image=str(company.image),  # Ensure that the image is converted to str
+            company_description=company.company_description,
+        )
+
+        company_with_trips_out = CompanyWithTripsOut(
+            company=company_out,
+            trips=trip_out_list
+        )
+
+        return response(status.HTTP_200_OK, company_with_trips_out)
+    except Company.DoesNotExist:
+        return 404, {'message': 'Company not found.'}
+
+
+
+'''get tripdetials by the trip id'''
+@trip_controller.get('/{trip_details_id}', response={
+    200: TripDetailOut,
+    404: MessageOut
+})
+def get_trip_details_by_trip(request, trip_id: UUID4):
+    try:
+        trip_details = TripDetails.objects.get(trip_id=trip_id)
+        return response(status.HTTP_200_OK, trip_details)
+    except TripDetails.DoesNotExist:
+        return 404, {'message': 'Trip not found.'}

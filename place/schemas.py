@@ -32,7 +32,7 @@ class PlaceMixinOut(Schema):
     latitude: float
     description: str
     short_location: str
-    price: Optional[float]
+    price: Optional[str]
     place_images: List[PlaceImageOut]
     social_media: Optional[SocialMediaSchema]
     type: Optional[str]
@@ -61,7 +61,7 @@ class PlaceMixinOut(Schema):
             place_subtype = None  # Cafe doesn't have a subtype field
         elif isinstance(place, TouristPlace):
             place_type = "TouristPlace"
-            place_subtype = place.type
+            place_subtype = None
         elif isinstance(place, Mall):
             place_type = "Mall"
             place_subtype = None  # Mall doesn't have a subtype field
@@ -82,7 +82,7 @@ class PlaceMixinOut(Schema):
             place_subtype = None  # Entertainment doesn't have a subtype field
         elif isinstance(place, Sport):
             place_type = "Gym"
-            place_subtype = None  # Gym doesn't have a subtype field
+            place_subtype = Sport.type  # Gym doesn't have a subtype field
         elif isinstance(place, Salons):
             place_type = "Salons"
             place_subtype = place.type
@@ -175,5 +175,28 @@ class FavoritePlaceOut(Schema):
     place: PlaceMixinOut
 
 
-class FavoritePlaceIn(Schema):
-    place_id: UUID4
+class CompanyOut(Schema):
+    id: UUID4
+    country: CountryOut
+    company_name: str
+    image: str  # Ensure that the field type is set to str
+    company_description: str
+
+
+class TripOut(Schema):
+    id: UUID4
+    trip_name: str
+    short_description: str
+
+class CompanyWithTripsOut(Schema):
+    company: CompanyOut
+    trips: List[TripOut]
+
+
+class TripDetailOut(Schema):
+    trip: TripOut
+    trip_name: str
+    trip_details: str
+    social_media: SocialMediaSchema = None
+    trip_images: List[PlaceImageOut] = None
+

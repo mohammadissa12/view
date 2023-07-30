@@ -5,6 +5,7 @@ from conf.utils.schemas import Token
 
 
 class AccountOut(Schema):
+    id: UUID4
     email: EmailStr = None
     first_name: str
     last_name: str
@@ -32,6 +33,7 @@ class AccountLoginIn(Schema):
 
 
 class AccountUpdateIn(Schema):
+
     first_name: str = None
     last_name: str = None
     email: EmailStr = None
@@ -50,5 +52,5 @@ class ChangePassword(Schema):
 
 
 class Profile(Schema):
-    id: UUID4 = None
+    id: UUID4
     account: AccountOut

@@ -5,17 +5,19 @@ from django.db.models import Subquery, OuterRef, FloatField, Avg
 from location.models import Country, City
 from location.schemas import CountryOut, CityOut
 from place.models import Advertisement, PlaceMixin, Reviews
-from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut, PlaceMixinOut, OfferSchema
+from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut, PlaceMixinOut, OfferSchema, \
+    CompanyOut
 
 
 class CountrySchema2(Schema):
-    country_id : UUID4= None
+    country_id: UUID4 = None
     country_name: str
     cities: List[CityOut]
     advertisements: List[AdvertisementSchema]
     recommended_places: List[RecommendedPlacesOut]
     latest_places: List[LatestPlacesOut]
     offers: List[OfferSchema]
+    company: List[CompanyOut]
 
     @staticmethod
     def from_orm(country: Country):
@@ -27,6 +29,7 @@ class CountrySchema2(Schema):
             recommended_places=[RecommendedPlacesOut.from_orm(place) for place in country.get_recommended_places],
             latest_places=[LatestPlacesOut.from_orm(place) for place in country.get_latest_places],
             offers=[OfferSchema.from_orm(offer) for offer in country.get_offers],
+            company =[CompanyOut.from_orm(company) for company in country.get_company]
         )
 
 
@@ -38,10 +41,8 @@ class CitySchema2(Schema):
     latest_places: List[LatestPlacesOut]
     highest_rated_places: List[PlaceMixinOut]
 
-
     @staticmethod
-    def from_orm(city:City):
-
+    def from_orm(city: City):
         return CitySchema2(
             city_id=city.id,
             city_name=city.city_name,
@@ -49,4 +50,5 @@ class CitySchema2(Schema):
             advertisements=[AdvertisementSchema.from_orm(ad) for ad in city.get_advertisements],
             latest_places=[LatestPlacesOut.from_orm(place) for place in city.get_latest_places],
             highest_rated_places=[PlaceMixinOut.from_orm(place) for place in city.get_high_rated],
+
         )

@@ -52,6 +52,9 @@ class Country(Entity):
     def get_offers(self):
         return self.offers.all()
 
+    @property
+    def get_company(self):
+        return self.company.all()
 
 class City(Entity):
     city_name = models.CharField('اسم المدينة', max_length=50, unique=True)

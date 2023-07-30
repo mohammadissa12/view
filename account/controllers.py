@@ -12,9 +12,9 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from conf.utils.schemas import MessageOut
 from conf.utils.permissions import AuthBearer, create_token
 from conf.utils.utils import response
-from .models import EmailAccount
+from .models import EmailAccount, ProfileUser
 from .schemas import AccountSignupOut, AccountSignupIn, AccountLoginIn, ChangePassword, AccountOut, AccountUpdateIn, \
-    ImageUpdateIn
+    ImageUpdateIn, Profile
 
 auth_controller = Router(tags=['Auth'])
 
@@ -54,7 +54,7 @@ def login(request, payload: AccountLoginIn):
         user = EmailAccount.objects.get(phone_number=payload.phone_number)
         if user.check_password(payload.password):
             token = create_token(user.id)
-            return response(200, {'profile': user, 'token': token})
+            return response(200, {'id': str(user.id), 'profile': user, 'token': token})
     except EmailAccount.DoesNotExist:
         return response(404, {'message': 'User not found'})
     return response(404, {'message': 'User not found'})
@@ -82,15 +82,29 @@ def change_password(request, payload: ChangePassword):
     return response(HTTPStatus.BAD_REQUEST, {'message': 'something went wrong, please try again later'})
 
 
-@auth_controller.get('/profile',
-                     auth=AuthBearer(),
-                     response={200: AccountOut, 400: MessageOut})
-def profile(request):
+@auth_controller.post('/logout', auth=AuthBearer(), response={200: MessageOut, 400: MessageOut})
+def user_logout(request):
+    logout(request)
+    request.session.flush()  # Delete the session data
+    return response(HTTPStatus.OK, {'message': 'Logged out and session deleted successfully'})
+
+
+@auth_controller.get('/profile', auth=AuthBearer(), response={200: Profile, 404: MessageOut})
+def get_profile(request):
     try:
-        user = get_object_or_404(EmailAccount, id=request.auth.id)
+        authenticated_user = request.auth
+        user = get_object_or_404(EmailAccount, id=authenticated_user.id)
+
+        return Profile(id=user.id, account=AccountOut(
+            id=user.id,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            phone_number=user.phone_number,
+            image_url=user.image_url,
+        ))
     except Exception:
-        return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
-    return response(HTTPStatus.OK, user)
+        return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing or user not found'})
 
 
 @auth_controller.put('/profile',
@@ -131,15 +145,15 @@ def update_email_phone(request, user_in: AccountUpdateIn, ):
     return response(HTTPStatus.OK, user)
 
 
-
-
 ALLOWED_IMAGE_FORMATS = ['PNG', 'JPEG', 'JPG', 'HEIC']
+
 
 def convert_png_to_jpg(png_data):
     image = Image.open(BytesIO(png_data))
     output_io = BytesIO()
     image.convert('RGB').save(output_io, format='JPEG')
     return output_io.getvalue()
+
 
 @auth_controller.post('/profile/image', auth=AuthBearer(), response={200: AccountOut, 400: MessageOut})
 def upload_image(request, file: UploadedFile = File(...)):
@@ -157,7 +171,8 @@ def upload_image(request, file: UploadedFile = File(...)):
         file_name = f'{file.name.split(".")[0]}.jpg'  # Change the file name extension to '.jpg'
         content_type = 'image/jpeg'
     elif file.content_type not in [f'image/{fmt.lower()}' for fmt in ALLOWED_IMAGE_FORMATS]:
-        return response(HTTPStatus.BAD_REQUEST, {'message': 'Invalid image format. Only PNG and JPG formats are allowed.'})
+        return response(HTTPStatus.BAD_REQUEST,
+                        {'message': 'Invalid image format. Only PNG and JPG formats are allowed.'})
     else:
         image_data = file.read()
         file_name = file.name
@@ -176,12 +191,3 @@ def upload_image(request, file: UploadedFile = File(...)):
     user.image = updated_file
     user.save()
     return response(HTTPStatus.OK, user)
-
-
-
-
-@auth_controller.post('/logout', auth=AuthBearer(), response={200: MessageOut, 400: MessageOut})
-def user_logout(request):
-    logout(request)
-    request.session.flush()  # Delete the session data
-    return response(HTTPStatus.OK, {'message': 'Logged out and session deleted successfully'})

@@ -360,20 +360,20 @@ class Company(Entity):
     country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='company')
     company_name = models.CharField('اسم الشركة', max_length=50)
     image = models.ImageField('الصورة', upload_to='company')
-    short_description = models.CharField('الوصف المختصر', max_length=100)
+    company_description = models.CharField('وصف الشركة', max_length=100)
 
     def __str__(self):
-        return f'{self.country.country_name}{self.Company_name}'
+        return f'{self.country.country_name}{self.company_name}'
 
     class Meta:
         verbose_name = 'شركة'
         verbose_name_plural = 'الشركات'
 
 
+
 class Trip(Entity):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='trip')
     trip_name = models.CharField('اسم الرحلة', max_length=50)
-    image = models.ImageField('الصورة', upload_to='trip')
     short_description = models.CharField('الوصف المختصر', max_length=100)
 
     def __str__(self):
@@ -383,16 +383,99 @@ class Trip(Entity):
         verbose_name = 'رحلة'
         verbose_name_plural = 'الرحلات'
 
-
+    @property
+    def company_description(self):
+        return self.company.company_description
 class TripDetails(Entity):
-    class TripType(models.TextChoices):
-        Family = 'Family', 'عائلة'
-        youth = 'youth', 'شباب'
-
     trip= models.OneToOneField(Trip, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_details')
-    trip_type = models.CharField('نوع الرحلة', max_length=50, choices=TripType.choices)
     trip_name = models.CharField('اسم الرحلة', max_length=50)
-    trip_days = models.CharField('عدد ايام الرحلة', max_length=50)
     trip_details = models.TextField('تفاصيل الرحلة', max_length=256)
-    trip_price = models.CharField('سعر الرحلة', max_length=50)
-    trip_description=models.TextField('وصف الرحلة', max_length=256)
+    location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661')
+
+    def __str__(self):
+        return f'{self.trip_name}'
+
+    class Meta:
+        verbose_name = 'تفاصيل الرحلة'
+        verbose_name_plural = 'تفاصيل الرحلات'
+
+    @property
+    def lat(self):
+        return self.location.latitude
+
+    @property
+    def lng(self):
+        return self.location.longitude
+
+    @property
+    def trip_images(self):
+        return self.trip_image.all()
+
+    @property
+    def social_media(self):
+        try:
+            return self.trip_social_media
+        except:
+            return None
+
+
+class TripImages(Entity):
+    trip = models.ForeignKey(TripDetails, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_image')
+    image = models.ImageField('الصورة', upload_to='trip_images')
+
+    def __str__(self):
+        return f'{self.trip.trip_name}'
+
+    class Meta:
+        verbose_name = 'صورة الرحلة'
+        verbose_name_plural = 'صور الرحلات'
+
+
+    @property
+    def trip_image_url(self):
+        domain = "https://moamel.pythonanywhere.com"  # Replace this with your actual domain
+        return f"{domain}{self.image.url}"
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        img = Image.open(self.image.path)
+        if img.height > 500 or img.width > 500:
+            output_size = (500, 500)
+            img.thumbnail(output_size)
+            img.save(self.image.path)
+
+
+class TripSocialMedia(Entity):
+    trip = models.ForeignKey(TripDetails, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_social_media', null=True, blank=True)
+    facebook = models.CharField('فيسبوك', null=True, blank=True, max_length=50)
+    instagram = models.CharField('انستغرام', null=True, blank=True, max_length=50)
+    telegram = models.CharField('تليجرام', null=True, blank=True, max_length=50)
+    whatsapp = models.CharField('واتساب', null=True, blank=True, max_length=50)
+
+    def __str__(self):
+        return f'{self.trip.trip_name}'
+
+    class Meta:
+        verbose_name = 'وسائل التواصل الاجتماعي'
+        verbose_name_plural = 'وسائل التواصل الاجتماعي'
+
+    SOCIAL_MEDIA_APPS = {
+        'facebook': 'facebook',
+        'instagram': 'instagram',
+        'telegram': 'telegram',
+        'whatsapp': 'whatsapp',
+    }
+
+    @property
+    def is_available(self):
+        available_apps = []
+        if self.facebook:
+            available_apps.append(self.SOCIAL_MEDIA_APPS['facebook'])
+        if self.instagram:
+            available_apps.append(self.SOCIAL_MEDIA_APPS['instagram'])
+        if self.telegram:
+            available_apps.append(self.SOCIAL_MEDIA_APPS['telegram'])
+        if self.whatsapp:
+            available_apps.append(self.SOCIAL_MEDIA_APPS['whatsapp'])
+        return available_apps

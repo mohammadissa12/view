@@ -83,7 +83,7 @@ def get_country_by_name(request, country_name: str):
         return 404, {'message': 'Country not found.'}
 
 
-@country_controller.get('/city/{city_name}', response={
+@country_controller.get('/city', response={
     200: CitySchema2,
     404: MessageOut
 })
