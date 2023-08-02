@@ -44,7 +44,7 @@ class BaseModelAdmin(admin.ModelAdmin):
     inlines = [ImageInline, SocialMediaInline, ReviewsInline]
     list_display = ['name', 'city', 'country_name', 'average_rating', 'count_reviews']
     search_fields = ['name', 'city__city_name', 'city__country__country_name']
-    list_filter = ['city', 'city__country__country_name','merchant']
+    list_filter = ['city', 'city__country__country_name']
 
     def country_name(self, obj):
         return obj.city.country.country_name

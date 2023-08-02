@@ -15,9 +15,7 @@ User = get_user_model()
 
 
 class PlaceMixin(Entity):
-    merchant = models.OneToOneField('account.Merchant', on_delete=models.CASCADE, related_name='merchant_places',
-                                 null=True,
-                                 blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_places', null=True, blank=True)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, related_name='city_places')
     name = models.CharField('الاسم', max_length=50, )
     description = models.TextField('الوصف', )
@@ -50,7 +48,7 @@ class PlaceMixin(Entity):
         return float(self.location.split(',')[1])
 
     def __str__(self):
-        return f'{self.name} - {self.city} - {self.latitude} - {self.longitude}'
+        return f'{self.name} - {self.city} '
 
     @property
     def place_images(self):
@@ -72,6 +70,7 @@ class PlaceMixin(Entity):
             ('add_place', 'Can add place'),
             ('edit_place', 'Can edit place'),
         ]
+
 
 class SocialMedia(Entity):
     place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True,

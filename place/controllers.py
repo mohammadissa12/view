@@ -3,7 +3,7 @@ from django.db.models import F
 from ninja import Router, File
 from ninja.files import UploadedFile
 
-from account.models import EmailAccount, Merchant
+from account.models import EmailAccount
 from conf.utils import status
 from conf.utils.permissions import AuthBearer
 from conf.utils.schemas import MessageOut
@@ -400,8 +400,8 @@ PLACE_MODEL_MAP = {
 def add_place_by_merchant(request, place_data: PlaceCreate, images: List[UploadedFile] = File(...)):
     user = request.auth
     try:
-        merchant = Merchant.objects.get(id=place_data.merchant_id)
-    except user.DoesNotExist:
+        user = EmailAccount.objects.get(id=place_data.user_id)
+    except EmailAccount.DoesNotExist:
         return 404, {'message': 'Merchant not found.'}
     try:
         city = City.objects.get(id=place_data.city_id)
@@ -415,10 +415,22 @@ def add_place_by_merchant(request, place_data: PlaceCreate, images: List[Uploade
     if not user.is_merchant:
         return 403, {'message': 'Only merchants can add places.'}
 
-    if place_model.objects.filter(merchant=merchant).exists():
+    if place_model.objects.filter(user=user).exists():
         return 403, {'message': 'Merchant can only add one place.'}
 
+    place_subtype = None
+    if place_data.place_type.lower() == 'stayplace':
+        place_subtype = place_data.type
 
+    if place := create_place(
+        place_model, place_data, city, user, place_subtype, images
+    ):
+        return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
+    else:
+        return 404, {'message': 'Error creating the place.'}
+
+
+def create_place(place_model, place_data, city, user, place_subtype, images):
     place = place_model(
         name=place_data.name,
         city=city,
@@ -427,8 +439,12 @@ def add_place_by_merchant(request, place_data: PlaceCreate, images: List[Uploade
         short_location=place_data.short_location,
         price=place_data.price,
         available=place_data.available,
-        merchant=merchant,
+        user=user,
     )
+
+    if hasattr(place, 'type'):
+        place.type = place_subtype
+
     place.save()
 
     social_media = SocialMedia(
@@ -446,4 +462,4 @@ def add_place_by_merchant(request, place_data: PlaceCreate, images: List[Uploade
 
     place.save()
 
-    return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
+    return place

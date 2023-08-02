@@ -127,32 +127,6 @@ class EmailAccount(AbstractUser, Entity):
         return super().has_module_perms(app_label)
 
 
-class Merchant(Entity):
-    account = models.OneToOneField(EmailAccount, on_delete=models.CASCADE, related_name='merchant')
-
-    def __str__(self):
-        return f'{self.account.first_name} {self.account.last_name}'
-
-
-@receiver(post_save, sender=EmailAccount)
-def create_merchant(sender, instance, created, **kwargs):
-    if instance.is_merchant:
-        Merchant.objects.create(account=instance)
-
-
-class Profile(Entity):
-    account = models.OneToOneField(EmailAccount, on_delete=models.CASCADE, related_name='profile')
-
-    def __str__(self):
-        return f'{self.account.first_name} {self.account.last_name}'
-
-
-@receiver(post_save, sender=EmailAccount)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(account=instance)
-
-
 class AppDetails(Entity):
     app_version = models.CharField('رقم الاصدار التطبيق', max_length=100)
 

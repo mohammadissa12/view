@@ -19,7 +19,6 @@ class CountrySchema2(Schema):
     cities: List[CityOut]
     advertisements: List[AdvertisementSchema]
     recommended_places: List[RecommendedPlacesOut]
-    latest_places: List[LatestPlacesOut]
     offers: List[OfferSchema]
     company: List[CompanyOut]
 
@@ -31,7 +30,6 @@ class CountrySchema2(Schema):
             cities=[CityOut.from_orm(city) for city in country.get_cities],
             advertisements=[AdvertisementSchema.from_orm(ad) for ad in country.get_advertisements],
             recommended_places=[RecommendedPlacesOut.from_orm(place) for place in country.get_recommended_places],
-            latest_places=[LatestPlacesOut.from_orm(place) for place in country.get_latest_places],
             offers=[OfferSchema.from_orm(offer) for offer in country.get_offers],
             company =[CompanyOut.from_orm(company) for company in country.get_company],
             app_version=AppDetails.from_orm(account.models.AppDetails.objects.first()).app_version

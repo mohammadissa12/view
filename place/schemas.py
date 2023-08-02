@@ -28,19 +28,18 @@ class PlaceMixinOut(Schema):
     name: str
     # location: str
     city: CityOut
-    longitude: float
-    latitude: float
+    longitude: float=None
+    latitude: float=None
     description: str
     short_location: str
     price: Optional[float]
     place_images: List[PlaceImageOut]
     social_media: Optional[SocialMediaSchema]
-    type: Optional[str]
-    subtype: Optional[str]
+    place_type: Optional[str]
+    type: Optional[str]=None
     average_rating: Optional[float]
     review_count: Optional[int]
     available: Optional[str]
-    merchant: UUID4 = None
     class Config:
         orm_mode = True
 
@@ -81,7 +80,7 @@ class PlaceMixinOut(Schema):
             place_subtype = None  # Entertainment doesn't have a subtype field
         elif isinstance(place, Sport):
             place_type = "Gym"
-            place_subtype = Sport.type  # Gym doesn't have a subtype field
+            place_subtype = Sport.type
         elif isinstance(place, Salons):
             place_type = "Salons"
             place_subtype = place.type
@@ -89,6 +88,7 @@ class PlaceMixinOut(Schema):
             place_type = "PlaceMixin"  # Default type for the base class
             place_subtype = None  # Default subtype if not applicable
 
+        user=place.user.is_merchant if place.user else None
         return PlaceMixinOut(
             id=place.id,
             name=place.name,
@@ -101,11 +101,11 @@ class PlaceMixinOut(Schema):
             average_rating=place.average_rating,
             review_count=place.review_count,
             social_media=is_available,
-            type=place_type,
-            subtype=place_subtype,
+            place_type=place_type,
+            type=place_subtype,
             price=place.price,
             avaialble=place.available,
-            merchant=place.merchant.id
+            user=user
         )
 
 
@@ -209,7 +209,8 @@ class PlaceCreate(Schema):
     short_location: str=None
     price: float=None
     place_type: str  # New field to specify the type of place
-    # place_subtype: str = None
+
     social_media: SocialMediaSchema = None
     available: str = None
-    merchant_id: UUID4
+    user_id: UUID4
+    type: Optional[str] = None
