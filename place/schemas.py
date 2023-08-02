@@ -1,5 +1,5 @@
 from ninja import Schema
-from pydantic import UUID4
+from pydantic import UUID4, validator
 from typing import List, Optional
 from pydantic import HttpUrl
 
@@ -200,3 +200,12 @@ class TripDetailOut(Schema):
     social_media: SocialMediaSchema = None
     trip_images: List[PlaceImageOut] = None
 
+class PlaceCreate(Schema):
+    name: str
+    city_id: UUID4
+    location: str
+    description: str=None
+    short_location: str=None
+    price: float=None
+    place_type: str  # New field to specify the type of place
+    # place_subtype: str = None

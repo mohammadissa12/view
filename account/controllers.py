@@ -12,7 +12,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from conf.utils.schemas import MessageOut
 from conf.utils.permissions import AuthBearer, create_token
 from conf.utils.utils import response
-from .models import EmailAccount, ProfileUser
+from .models import EmailAccount
 from .schemas import AccountSignupOut, AccountSignupIn, AccountLoginIn, ChangePassword, AccountOut, AccountUpdateIn, \
     ImageUpdateIn, Profile
 

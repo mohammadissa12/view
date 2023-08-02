@@ -1,3 +1,4 @@
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db.models.signals import post_save
@@ -5,6 +6,7 @@ from django.dispatch import receiver
 
 from conf.utils.models import Entity
 
+User='EmailAccount'
 
 class EmailAccountManager(UserManager):
     def get_by_natural_key(self, username):
@@ -18,6 +20,8 @@ class EmailAccountManager(UserManager):
         user = self.model(
             phone_number=phone_number
             , **extra_fields
+
+
         )
         user.set_password(password)
         user.first_name = first_name
@@ -30,24 +34,57 @@ class EmailAccountManager(UserManager):
             phone_number=phone_number
         )
         user.set_password(password)
+        user.is_admin = True
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
         return user
 
+    def create_admin(self, phone_number, password):
+        user = self.model(
+            phone_number=phone_number
+        )
+        user.set_password(password)
+        user.is_staff = True
+        user.save(using=self._db)
+        return user
+
+    def create_staff(self, phone_number, password):
+        user = self.model(
+            phone_number=phone_number
+        )
+        user.set_password(password)
+        user.is_staff = True
+        user.save(using=self._db)
+        return user
+
 
 class EmailAccount(AbstractUser, Entity):
+
     username = models.NOT_PROVIDED
     first_name = models.CharField('الاسم الاول', max_length=255)
     last_name = models.CharField('الاسم الثاني', max_length=255)
     email = models.EmailField('Email', blank=True, null=True)
     phone_number = models.IntegerField('رقم الهاتف', unique=True)
     image = models.ImageField('الصورة', upload_to='profile/', blank=True, null=True)
+
     is_verified = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
+    is_merchant = models.BooleanField(default=False)
+
+
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
 
     objects = EmailAccountManager()
+
+    class Meta:
+        verbose_name = 'حساب'
+        verbose_name_plural = 'حسابات'
 
     def __str__(self):
         return f'{self.first_name} {self.last_name} {self.phone_number}'
@@ -59,10 +96,6 @@ class EmailAccount(AbstractUser, Entity):
             return True
         return False
 
-    class Meta:
-        verbose_name = 'حساب'
-        verbose_name_plural = 'حسابات'
-
     @property
     def image_url(self):
         return (
@@ -71,33 +104,51 @@ class EmailAccount(AbstractUser, Entity):
             else None
         )
 
+    def has_perm(self, perm, obj=None):
+        if self.is_superuser:
+            return True
 
-class ProfileUser(Entity):
-    user = models.OneToOneField(EmailAccount, on_delete=models.CASCADE)
+        # Give all permissions to is_admin except delete
+        if self.is_admin and perm != 'delete':
+            return True
+
+        if self.is_staff and perm in [ 'account.EmailAccount', 'view_user','view_merchant','change_merchant','view_profile','change_profile',]:
+            return True
+
+        return super().has_perm(perm, obj)
+
+    def has_module_perms(self, app_label):
+        if self.is_superuser or self.is_admin:
+            return True
+
+        # Define your custom module-level permission checks for staff users
+        if self.is_staff and app_label == 'account':
+            return True
+
+        return super().has_module_perms(app_label)
+
+class Merchant(Entity):
+    account = models.OneToOneField(EmailAccount, on_delete=models.CASCADE, related_name='merchant')
 
     def __str__(self):
-        return f'{self.user.first_name} {self.user.last_name} {self.user.phone_number}'
+        return f'{self.account.first_name} {self.account.last_name}'
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+@receiver(post_save, sender=EmailAccount)
+def create_merchant(sender, instance, created, **kwargs):
+    if created and instance.is_merchant:
+        Merchant.objects.create(account=instance)
 
-    @property
-    def full_name(self):
-        return f'{self.user.first_name} {self.user.last_name}'
+class Profile(Entity):
+    account = models.OneToOneField(EmailAccount, on_delete=models.CASCADE, related_name='profile')
 
-    @property
-    def phone_number(self):
-        return self.user.phone_number
-
-    class Meta:
-        verbose_name = 'الملف الشخصي '
-        verbose_name_plural = 'الملفات الشخصية'
-
+    def __str__(self):
+        return f'{self.account.first_name} {self.account.last_name}'
 
 @receiver(post_save, sender=EmailAccount)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        ProfileUser.objects.create(user=instance)
+
+        Profile.objects.create(account=instance)
 
 
 class AppDetails(Entity):

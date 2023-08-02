@@ -15,6 +15,9 @@ User = get_user_model()
 
 
 class PlaceMixin(Entity):
+    merchant = models.OneToOneField('account.Merchant', on_delete=models.CASCADE, related_name='merchant_places',
+                                 null=True,
+                                 blank=True)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, related_name='city_places')
     name = models.CharField('الاسم', max_length=50, )
     description = models.TextField('الوصف', )
@@ -23,6 +26,7 @@ class PlaceMixin(Entity):
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661')
     price = models.FloatField('السعر', max_length=50, null=True, blank=True)
     available = models.CharField('المتاح', max_length=50, null=True, blank=True)
+
     def get_average_rating(self) -> float:
         return Reviews.objects.filter(place=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
 
@@ -63,6 +67,11 @@ class PlaceMixin(Entity):
         except SocialMedia.DoesNotExist:
             return None
 
+    class Meta:
+        permissions = [
+            ('add_place', 'Can add place'),
+            ('edit_place', 'Can edit place'),
+        ]
 
 class SocialMedia(Entity):
     place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True,
@@ -232,6 +241,7 @@ class Sport(PlaceMixin):
     class SportType(models.TextChoices):
         Gym = 'Gym', 'نادي رياضي'
         gaming = 'gaming', 'صالة العاب'
+
     type = models.CharField('نوع المكان', choices=SportType.choices, max_length=50, )
 
     class Meta:
@@ -357,7 +367,8 @@ class FavoritePlaces(Entity):
 
 
 class Company(Entity):
-    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',related_name='company')
+    country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',
+                                related_name='company')
     company_name = models.CharField('اسم الشركة', max_length=50)
     image = models.ImageField('الصورة', upload_to='company')
     company_description = models.CharField('وصف الشركة', max_length=100)
@@ -368,7 +379,6 @@ class Company(Entity):
     class Meta:
         verbose_name = 'شركة'
         verbose_name_plural = 'الشركات'
-
 
 
 class Trip(Entity):
@@ -386,8 +396,10 @@ class Trip(Entity):
     @property
     def company_description(self):
         return self.company.company_description
+
+
 class TripDetails(Entity):
-    trip= models.OneToOneField(Trip, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_details')
+    trip = models.OneToOneField(Trip, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_details')
     trip_name = models.CharField('اسم الرحلة', max_length=50)
     trip_details = models.TextField('تفاصيل الرحلة', max_length=256)
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661')
@@ -430,7 +442,6 @@ class TripImages(Entity):
         verbose_name = 'صورة الرحلة'
         verbose_name_plural = 'صور الرحلات'
 
-
     @property
     def trip_image_url(self):
         domain = "https://moamel.pythonanywhere.com"  # Replace this with your actual domain
@@ -447,7 +458,8 @@ class TripImages(Entity):
 
 
 class TripSocialMedia(Entity):
-    trip = models.ForeignKey(TripDetails, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_social_media', null=True, blank=True)
+    trip = models.ForeignKey(TripDetails, on_delete=models.CASCADE, verbose_name='الرحلة',
+                             related_name='trip_social_media', null=True, blank=True)
     facebook = models.CharField('فيسبوك', null=True, blank=True, max_length=50)
     instagram = models.CharField('انستغرام', null=True, blank=True, max_length=50)
     telegram = models.CharField('تليجرام', null=True, blank=True, max_length=50)

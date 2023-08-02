@@ -365,8 +365,6 @@ def get_trips_by_company(request, company_id: UUID4):
         return 404, {'message': 'Company not found.'}
 
 
-
-'''get tripdetials by the trip id'''
 @trip_controller.get('/{trip_details_id}', response={
     200: TripDetailOut,
     404: MessageOut
@@ -377,3 +375,67 @@ def get_trip_details_by_trip(request, trip_id: UUID4):
         return response(status.HTTP_200_OK, trip_details)
     except TripDetails.DoesNotExist:
         return 404, {'message': 'Trip not found.'}
+
+
+merchant_controller = Router(tags=['Merchants'])
+
+
+
+PLACE_MODEL_MAP = {
+    'restaurant': Restaurant,
+    'stayplace': StayPlace,
+    'cafe': Cafe,
+    'touristplace': TouristPlace,
+    'mall': Mall,
+    'healthcentre': HealthCenter,
+    'holyplace': HolyPlace,
+    'financial': Financial,
+    'gasstation': GasStation,
+    'entertainment': Entertainment,
+    'gym': Sport,
+    'salons': Salons,
+}
+
+@merchant_controller.post('/places', response={200: PlaceMixinOut, 404: MessageOut,403:MessageOut}, auth=AuthBearer())
+def add_place_by_merchant(request, place_data: PlaceCreate):
+    User = request.auth  # Get the authenticated merchant
+    try:
+        city = City.objects.get(id=place_data.city_id)
+    except City.DoesNotExist:
+        return 404, {'message': 'City not found.'}
+
+    # Get the model class based on the place_type field
+    place_model = PLACE_MODEL_MAP.get(place_data.place_type.lower())
+    if not place_model:
+        return 404, {'message': 'Invalid place type.'}
+
+    # Check if the user is a merchant
+    if not User.is_merchant:
+        return 403, {'message': 'Only merchants can add places.'}
+
+    # Check if the subtype is valid for the specified place type
+    # if place_data.place_subtype:
+    #     subtype_field = getattr(place_model, 'type', None)  # Get the subtype field if it exists
+    #     if not subtype_field or not hasattr(subtype_field, 'choices') or place_data.place_subtype not in dict(subtype_field.choices):
+    #         return 404, {'message': 'Invalid place subtype for the specified place type.'}
+
+    # Create the place object based on the model class
+    place = place_model(
+        name=place_data.name,
+        city=city,
+        location=place_data.location,
+        description=place_data.description,
+        short_location=place_data.short_location,
+        price=place_data.price,
+        # user=merchant,  # Assign the authenticated merchant to the user field
+    )
+
+    # Set the subtype dynamically (if applicable)
+    # if place_data.place_subtype:
+    #     setattr(place, 'type', place_data.place_subtype)
+
+    # Save the created place
+    place.save()
+
+    # Return the created place as the response
+    return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
