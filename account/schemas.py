@@ -58,3 +58,8 @@ class Profile(Schema):
 
 class AppDetails(Schema):
     app_version: str = None
+
+
+class MerchantOut(Schema):
+    id: UUID4
+    account: AccountOut

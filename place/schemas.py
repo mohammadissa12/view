@@ -3,7 +3,7 @@ from pydantic import UUID4, validator
 from typing import List, Optional
 from pydantic import HttpUrl
 
-from account.schemas import  AccountOut
+from account.schemas import AccountOut, MerchantOut
 from location.schemas import CityOut, CountryOut
 from place.models import PlaceMixin, StayPlace, TouristPlace, HealthCenter, HolyPlace, Financial, GasStation, \
     Entertainment, Sport, Salons, Restaurant, Cafe, Mall
@@ -40,8 +40,7 @@ class PlaceMixinOut(Schema):
     average_rating: Optional[float]
     review_count: Optional[int]
     available: Optional[str]
-
-
+    merchant: UUID4 = None
     class Config:
         orm_mode = True
 
@@ -105,7 +104,8 @@ class PlaceMixinOut(Schema):
             type=place_type,
             subtype=place_subtype,
             price=place.price,
-            avaialble=place.available
+            avaialble=place.available,
+            merchant=place.merchant.id
         )
 
 
@@ -200,6 +200,7 @@ class TripDetailOut(Schema):
     social_media: SocialMediaSchema = None
     trip_images: List[PlaceImageOut] = None
 
+
 class PlaceCreate(Schema):
     name: str
     city_id: UUID4
@@ -209,3 +210,6 @@ class PlaceCreate(Schema):
     price: float=None
     place_type: str  # New field to specify the type of place
     # place_subtype: str = None
+    social_media: SocialMediaSchema = None
+    available: str = None
+    merchant_id: UUID4

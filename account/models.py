@@ -6,7 +6,8 @@ from django.dispatch import receiver
 
 from conf.utils.models import Entity
 
-User='EmailAccount'
+User = 'EmailAccount'
+
 
 class EmailAccountManager(UserManager):
     def get_by_natural_key(self, username):
@@ -20,7 +21,6 @@ class EmailAccountManager(UserManager):
         user = self.model(
             phone_number=phone_number
             , **extra_fields
-
 
         )
         user.set_password(password)
@@ -60,7 +60,6 @@ class EmailAccountManager(UserManager):
 
 
 class EmailAccount(AbstractUser, Entity):
-
     username = models.NOT_PROVIDED
     first_name = models.CharField('الاسم الاول', max_length=255)
     last_name = models.CharField('الاسم الثاني', max_length=255)
@@ -75,7 +74,6 @@ class EmailAccount(AbstractUser, Entity):
     is_superuser = models.BooleanField(default=False)
 
     is_merchant = models.BooleanField(default=False)
-
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
@@ -112,7 +110,8 @@ class EmailAccount(AbstractUser, Entity):
         if self.is_admin and perm != 'delete':
             return True
 
-        if self.is_staff and perm in [ 'account.EmailAccount', 'view_user','view_merchant','change_merchant','view_profile','change_profile',]:
+        if self.is_staff and perm in ['account.EmailAccount', 'view_user', 'view_merchant', 'change_merchant',
+                                      'view_profile', 'change_profile', ]:
             return True
 
         return super().has_perm(perm, obj)
@@ -127,16 +126,19 @@ class EmailAccount(AbstractUser, Entity):
 
         return super().has_module_perms(app_label)
 
+
 class Merchant(Entity):
     account = models.OneToOneField(EmailAccount, on_delete=models.CASCADE, related_name='merchant')
 
     def __str__(self):
         return f'{self.account.first_name} {self.account.last_name}'
 
+
 @receiver(post_save, sender=EmailAccount)
 def create_merchant(sender, instance, created, **kwargs):
-    if created and instance.is_merchant:
+    if instance.is_merchant:
         Merchant.objects.create(account=instance)
+
 
 class Profile(Entity):
     account = models.OneToOneField(EmailAccount, on_delete=models.CASCADE, related_name='profile')
@@ -144,10 +146,10 @@ class Profile(Entity):
     def __str__(self):
         return f'{self.account.first_name} {self.account.last_name}'
 
+
 @receiver(post_save, sender=EmailAccount)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-
         Profile.objects.create(account=instance)
 
 

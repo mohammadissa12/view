@@ -14,7 +14,7 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Merchant)
 class MerchantAdmin(admin.ModelAdmin):
-    list_display = ('account', )
+    list_display = ('account','id' )
 
 
 @admin.register(EmailAccount)
