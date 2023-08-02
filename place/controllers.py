@@ -1,6 +1,6 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.models import F
-from ninja import Router,File
+from ninja import Router, File
 from ninja.files import UploadedFile
 
 from account.models import EmailAccount, Merchant
@@ -397,7 +397,7 @@ PLACE_MODEL_MAP = {
 
 
 @merchant_controller.post('/places', response={200: PlaceMixinOut, 404: MessageOut, 403: MessageOut}, auth=AuthBearer())
-def add_place_by_merchant(request, place_data: PlaceCreate,images: List[UploadedFile] = File(...)):
+def add_place_by_merchant(request, place_data: PlaceCreate, images: List[UploadedFile] = File(...)):
     user = request.auth
     try:
         merchant = Merchant.objects.get(id=place_data.merchant_id)
@@ -414,6 +414,10 @@ def add_place_by_merchant(request, place_data: PlaceCreate,images: List[Uploaded
 
     if not user.is_merchant:
         return 403, {'message': 'Only merchants can add places.'}
+
+    if place_model.objects.filter(merchant=merchant).exists():
+        return 403, {'message': 'Merchant can only add one place.'}
+
 
     place = place_model(
         name=place_data.name,
@@ -441,6 +445,5 @@ def add_place_by_merchant(request, place_data: PlaceCreate,images: List[Uploaded
         place_image.save()
 
     place.save()
-
 
     return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
