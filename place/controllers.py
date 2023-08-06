@@ -34,12 +34,12 @@ def get_places_by_city(city_id: UUID4, place_model):
         return None
 
 
-
 @place_controller.get('/places/city/{city_id}', response={
     200: PlaceMixinSchema,
     404: MessageOut
 })
-def get_places_by_city_and_type(request, city_id: UUID4, place_type_name: str = None, type_name: str = None, page: int = 1,
+def get_places_by_city_and_type(request, city_id: UUID4, place_type_name: str = None, type_name: str = None,
+                                page: int = 1,
                                 per_page: int = 10, sort_by_price: str = None):
     try:
         city = City.objects.get(id=city_id)
@@ -271,6 +271,7 @@ def report_comment(request, comment_id: UUID4):
 
 search_controller = Router(tags=['Search'])
 
+
 # @search_controller.get('/places/search', response={
 #     200: PlaceMixinSchema,
 #     404: MessageOut
@@ -300,6 +301,33 @@ search_controller = Router(tags=['Search'])
 #         return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page, )
 #
 #     return 404, {'message': 'No places found.'}
+
+@search_controller.get('/places/search', response={
+    200: PlaceMixinSchema,
+    404: MessageOut
+})
+def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None, place_type_name: str = None,
+                  per_page: int = 10, page: int = 1):
+    try:
+        country = Country.objects.get(id=country_id)
+    except Country.DoesNotExist:
+        return 404, {'message': 'Country not found.'}
+
+    places = PlaceMixin.objects.filter(city__country=country)
+
+    if city_id:
+        places = places.filter(city_id=city_id)
+
+    if search:
+        places = places.filter(name__icontains=search)
+
+    if place_type_name:
+         places=places.filter(place_type__name=place_type_name)
+
+    if places:
+        return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page, )
+
+    return 404, {'message': 'No places found.'}
 
 
 trip_controller = Router(tags=['Trips'])
