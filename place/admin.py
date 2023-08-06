@@ -1,25 +1,10 @@
 from django.contrib import admin
-
-
 from location.models import Country
 from .models import (
-    StayPlace,
-    Restaurant,
-    Cafe,
-    Mall,
-    HealthCenter,
-    Salons,
-    TouristPlace,
-    Images,
-    Sport,
-    HolyPlace,
-    Financial,
-    GasStation,
-    Entertainment,
     Images,
     Reviews,
     SocialMedia, Advertisement, RecommendedPlaces, LatestPlaces, PlaceMixin, FavoritePlaces, Offers, Company, Trip,
-    TripDetails
+    TripDetails, TripSocialMedia, TripImages, PlaceType, PlaceSubType,
 )
 
 
@@ -42,9 +27,9 @@ class ReviewsInline(PlaceMixinInline):
 
 class BaseModelAdmin(admin.ModelAdmin):
     inlines = [ImageInline, SocialMediaInline, ReviewsInline]
-    list_display = ['name', 'city', 'country_name', 'average_rating', 'count_reviews']
+    list_display = ['name', 'city', 'country_name', 'average_rating', 'count_reviews','place_type']
     search_fields = ['name', 'city__city_name', 'city__country__country_name']
-    list_filter = ['city', 'city__country__country_name']
+    list_filter = ['city', 'city__country__country_name', 'place_type__name','type','type__place_type',]
 
     def country_name(self, obj):
         return obj.city.country.country_name
@@ -60,66 +45,6 @@ class BaseModelAdmin(admin.ModelAdmin):
     count_reviews.short_description = 'عدد التقييمات'
 
 
-@admin.register(StayPlace)
-class StayPlaceAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(Restaurant)
-class RestaurantAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(Cafe)
-class CafeteriaAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(Mall)
-class MallAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(HealthCenter)
-class HealthCentreAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(Salons)
-class SalonsAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(TouristPlace)
-class TouristPlaceAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(Sport)
-class GymAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(HolyPlace)
-class HolyPlaceAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(Financial)
-class FinancialAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(GasStation)
-class GasStationAdmin(BaseModelAdmin):
-    pass
-
-
-@admin.register(Entertainment)
-class EntertainmentAdmin(BaseModelAdmin):
-    pass
-
-
 class CountryFilter(admin.SimpleListFilter):
     title = 'Country'
     parameter_name = 'country'
@@ -132,13 +57,52 @@ class CountryFilter(admin.SimpleListFilter):
         return queryset.filter(country__id=self.value()) if self.value() else queryset
 
 
-
-
 admin.site.register(Advertisement)
 admin.site.register(LatestPlaces)
 admin.site.register(RecommendedPlaces)
 admin.site.register(FavoritePlaces)
 admin.site.register(Offers)
-admin.site.register(Company)
-admin.site.register(Trip)
-admin.site.register(TripDetails)
+
+
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ['company_name', 'country', 'city', 'company_description']
+    search_fields = ['name', 'country__country_name', 'city__city_name']
+    list_filter = ['country', 'city']
+
+
+@admin.register(Trip)
+class TripAdmin(admin.ModelAdmin):
+    list_display = ['trip_name', 'company', 'short_description']
+    search_fields = ['name', 'company__company_name']
+    list_filter = ['company']
+
+
+class SocialMediaTripInline(admin.TabularInline):
+    model = TripSocialMedia
+    extra = 1
+    inlines = []
+
+
+class ImageTripInline(admin.TabularInline):
+    model = TripImages
+    extra = 1
+    inlines = []
+
+
+class TripDetailsModelAdmin(admin.ModelAdmin):
+    inlines = [ImageTripInline, SocialMediaTripInline]
+    list_display = ['trip', 'trip_name', 'trip_details', 'location']
+    search_fields = ['trip__trip_name', 'trip__company__company_name']
+    list_filter = ['trip__company__company_name']
+
+
+admin.site.register(TripDetails, TripDetailsModelAdmin)
+
+'''place_type'''
+admin.site.register(PlaceType)
+admin.site.register(PlaceSubType)
+
+@admin.register(PlaceMixin)
+class PlaceMixinAdmin(BaseModelAdmin):
+    pass

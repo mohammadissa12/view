@@ -37,5 +37,3 @@ class CitySchema(Schema):
     current_page: int = None
     page_count: int = None
     data: List[CityOut]
-
-

@@ -29,7 +29,6 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'silk',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,12 +36,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_extensions',
     'account',
-    # 'place',
+    'place',
     'location',
     'location_field.apps.DefaultConfig',
-    'place.apps.ViewConfig',
+    # 'place.apps.ViewConfig',
 ]
 
 MIDDLEWARE = [
@@ -53,7 +51,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'silk.middleware.SilkyMiddleware',
 
 ]
 
@@ -125,13 +122,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'account.EmailAccount'
@@ -142,23 +132,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 SILKY_PYTHON_PROFILER = True
 
 
-# if not DEBUG:
-#     CACHES = {
-#         'default': {
-#             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-#             'LOCATION': 'unique-snowflake',
-#         }
-#     }
-#
-#     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-#
-# if not DEBUG:
-#     SESSION_COOKIE_SECURE = True
-#     CSRF_COOKIE_SECURE = True
-#     SECURE_BROWSER_XSS_FILTER = True
-#     SECURE_CONTENT_TYPE_NOSNIFF = True
-#     SECURE_HSTS_SECONDS = 86400  # 1 day
-#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-#     SECURE_HSTS_PRELOAD = True
 
 

@@ -1,5 +1,5 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db.models import F
+from django.db.models import F, Q
 from ninja import Router, File
 from ninja.files import UploadedFile
 
@@ -11,28 +11,6 @@ from conf.utils.utils import response
 from location.models import City, Country
 from .models import *
 from .schemas import *
-
-
-def filter_by_place_type(places, place_type):
-    place_model_map = {
-        'restaurant': Restaurant,
-        'stayplace': StayPlace,
-        'cafe': Cafe,
-        'touristplace': TouristPlace,
-        'mall': Mall,
-        'healthcentre': HealthCenter,
-        'holyplace': HolyPlace,
-        'financial': Financial,
-        'gasstation': GasStation,
-        'entertainment': Entertainment,
-        'gym': Sport,
-        'salons': Salons,
-    }
-    if place_model := place_model_map.get(place_type.lower()):
-        return place_model.objects.filter(id__in=places.values('id'))
-    else:
-        return None
-
 
 place_controller = Router(tags=['Places'])
 
@@ -56,28 +34,22 @@ def get_places_by_city(city_id: UUID4, place_model):
         return None
 
 
+
 @place_controller.get('/places/city/{city_id}', response={
     200: PlaceMixinSchema,
     404: MessageOut
 })
-def get_places_by_city_and_type(request, city_id: UUID4, place_type: str = None, subtype: str = None, page: int = 1,
+def get_places_by_city_and_type(request, city_id: UUID4, place_type_name: str = None, type_name: str = None, page: int = 1,
                                 per_page: int = 10, sort_by_price: str = None):
     try:
         city = City.objects.get(id=city_id)
     except City.DoesNotExist:
         return 404, {'message': 'City not found.'}
-
     places = PlaceMixin.objects.filter(city=city)
-
-    if place_type:
-        places = filter_by_place_type(places, place_type)
-
-        if not places:
-            return 404, {'message': 'No places found for the specified type.'}
-
-        if subtype:
-            places = places.filter(type__iexact=subtype)
-
+    if place_type_name:
+        places = places.filter(place_type_name=place_type_name)
+    if type_name:
+        places = places.filter(type_name=type_name)
     if sort_by_price == "low":
         places = places.order_by('price')
     elif sort_by_price == "high":
@@ -102,77 +74,77 @@ def get_places_user_reviewed(request):
         return 404, {'message': 'No reviewed places found for the user.'}
 
 
-advertisement_controller = Router(tags=['Advertisement'])
-
-
-@advertisement_controller.get('/advertisement', response={
-    200: List[AdvertisementSchema],
-    404: MessageOut
-})
-def get_advertisement_by_country(request, country_id: UUID4, ):
-    if advertisement := Advertisement.objects.filter(country_id=country_id):
-        return response(status.HTTP_200_OK, advertisement)
-    return 404, {'message': 'No advertisement found.'}
-
-
-@advertisement_controller.get('/advertisement/city/{city_id}', response={
-    200: List[AdvertisementSchema],
-    404: MessageOut
-})
-def get_advertisement_by_city(request, city_id: UUID4):
-    if advertisement := Advertisement.objects.filter(city_id=city_id):
-        return response(status.HTTP_200_OK, advertisement)
-    return 404, {'message': 'No advertisement found.'}
-
-
-RecommendedPlaces_controller = Router(tags=['Recommended Places'])
-
-
-@RecommendedPlaces_controller.get('/recommended-places', response={
-    200: List[RecommendedPlacesOut],
-    404: MessageOut
-})
-def get_recommended_places_by_country(request, country_id: UUID4):
-    if recommended_places := RecommendedPlaces.objects.filter(
-            country_id=country_id
-    ):
-        return response(status.HTTP_200_OK, recommended_places)
-    return 404, {'message': 'No recommended places found.'}
-
-
-latest_places_controller = Router(tags=['Latest Places'])
-
-
-@latest_places_controller.get('/latest-places/country', response={
-    200: List[LatestPlacesOut],
-    404: MessageOut
-})
-def get_latest_places_by_country(request, country_id: UUID4):
-    try:
-        country = Country.objects.get(id=country_id)
-        if latest_places := LatestPlaces.objects.filter(
-                country=country
-        ).order_by('-created')[:40]:
-            return response(status.HTTP_200_OK, latest_places)
-        return 404, {'message': 'No latest places found.'}
-    except Country.DoesNotExist:
-        return 404, {'message': 'Country not found.'}
-
-
-@latest_places_controller.get('/latest-places/city/{city_id}', response={
-    200: List[LatestPlacesCity],
-    404: MessageOut
-})
-def get_latest_places_by_city(request, city_id: UUID4):
-    try:
-        city = City.objects.get(id=city_id)
-        if latest_places := LatestPlaces.objects.filter(
-                city=city
-        ).order_by('-created')[:40]:
-            return response(status.HTTP_200_OK, latest_places)
-        return 404, {'message': 'No latest places found.'}
-    except City.DoesNotExist:
-        return 404, {'message': 'City not found.'}
+# advertisement_controller = Router(tags=['Advertisement'])
+#
+#
+# @advertisement_controller.get('/advertisement', response={
+#     200: List[AdvertisementSchema],
+#     404: MessageOut
+# })
+# def get_advertisement_by_country(request, country_id: UUID4, ):
+#     if advertisement := Advertisement.objects.filter(country_id=country_id):
+#         return response(status.HTTP_200_OK, advertisement)
+#     return 404, {'message': 'No advertisement found.'}
+#
+#
+# @advertisement_controller.get('/advertisement/city/{city_id}', response={
+#     200: List[AdvertisementSchema],
+#     404: MessageOut
+# })
+# def get_advertisement_by_city(request, city_id: UUID4):
+#     if advertisement := Advertisement.objects.filter(city_id=city_id):
+#         return response(status.HTTP_200_OK, advertisement)
+#     return 404, {'message': 'No advertisement found.'}
+#
+#
+# RecommendedPlaces_controller = Router(tags=['Recommended Places'])
+#
+#
+# @RecommendedPlaces_controller.get('/recommended-places', response={
+#     200: List[RecommendedPlacesOut],
+#     404: MessageOut
+# })
+# def get_recommended_places_by_country(request, country_id: UUID4):
+#     if recommended_places := RecommendedPlaces.objects.filter(
+#             country_id=country_id
+#     ):
+#         return response(status.HTTP_200_OK, recommended_places)
+#     return 404, {'message': 'No recommended places found.'}
+#
+#
+# latest_places_controller = Router(tags=['Latest Places'])
+#
+#
+# @latest_places_controller.get('/latest-places/country', response={
+#     200: List[LatestPlacesOut],
+#     404: MessageOut
+# })
+# def get_latest_places_by_country(request, country_id: UUID4):
+#     try:
+#         country = Country.objects.get(id=country_id)
+#         if latest_places := LatestPlaces.objects.filter(
+#                 country=country
+#         ).order_by('-created')[:40]:
+#             return response(status.HTTP_200_OK, latest_places)
+#         return 404, {'message': 'No latest places found.'}
+#     except Country.DoesNotExist:
+#         return 404, {'message': 'Country not found.'}
+#
+#
+# @latest_places_controller.get('/latest-places/city/{city_id}', response={
+#     200: List[LatestPlacesCity],
+#     404: MessageOut
+# })
+# def get_latest_places_by_city(request, city_id: UUID4):
+#     try:
+#         city = City.objects.get(id=city_id)
+#         if latest_places := LatestPlaces.objects.filter(
+#                 city=city
+#         ).order_by('-created')[:40]:
+#             return response(status.HTTP_200_OK, latest_places)
+#         return 404, {'message': 'No latest places found.'}
+#     except City.DoesNotExist:
+#         return 404, {'message': 'City not found.'}
 
 
 favorite_places_controller = Router(tags=['favorite places'])
@@ -299,36 +271,35 @@ def report_comment(request, comment_id: UUID4):
 
 search_controller = Router(tags=['Search'])
 
-
-@search_controller.get('/places/search', response={
-    200: PlaceMixinSchema,
-    404: MessageOut
-})
-def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None, place_type: str = None,
-                  per_page: int = 10, page: int = 1):
-    try:
-        country = Country.objects.get(id=country_id)
-    except Country.DoesNotExist:
-        return 404, {'message': 'Country not found.'}
-
-    places = PlaceMixin.objects.filter(city__country=country)
-
-    if city_id:
-        places = places.filter(city_id=city_id)
-
-    if search:
-        places = places.filter(name__icontains=search)
-
-    if place_type:
-        if filtered_places := filter_by_place_type(places, place_type):
-            return response(status.HTTP_200_OK, filtered_places, paginated=True, per_page=per_page, page=page, )
-        else:
-            return 404, {'message': 'No places found for the specified type.'}
-
-    if places:
-        return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page, )
-
-    return 404, {'message': 'No places found.'}
+# @search_controller.get('/places/search', response={
+#     200: PlaceMixinSchema,
+#     404: MessageOut
+# })
+# def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None, place_type: str = None,
+#                   per_page: int = 10, page: int = 1):
+#     try:
+#         country = Country.objects.get(id=country_id)
+#     except Country.DoesNotExist:
+#         return 404, {'message': 'Country not found.'}
+#
+#     places = PlaceMixin.objects.filter(city__country=country)
+#
+#     if city_id:
+#         places = places.filter(city_id=city_id)
+#
+#     if search:
+#         places = places.filter(name__icontains=search)
+#
+#     if place_type:
+#         if filtered_places := filter_by_place_type(places, place_type):
+#             return response(status.HTTP_200_OK, filtered_places, paginated=True, per_page=per_page, page=page, )
+#         else:
+#             return 404, {'message': 'No places found for the specified type.'}
+#
+#     if places:
+#         return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page, )
+#
+#     return 404, {'message': 'No places found.'}
 
 
 trip_controller = Router(tags=['Trips'])
@@ -347,10 +318,16 @@ def get_trips_by_company(request, company_id: UUID4):
             return 404, {'message': 'No trips found for the specified company.'}
 
         trip_out_list = [TripOut.from_orm(trip) for trip in trips]
+        trip_detail_out_list = []
+
+        for trip in trips:
+            trip_details = TripDetails.objects.filter(trip_id=trip.id)
+            if trip_details.exists():
+                trip_detail_out_list.extend([TripDetailOut.from_orm(detail) for detail in trip_details])
 
         company_out = CompanyOut(
             id=company.id,
-            country=CountryOut.from_orm(company.country),
+            city=CityOut.from_orm(company.city),  # Set the city field with CityOut object
             company_name=company.company_name,
             image=str(company.image),  # Ensure that the image is converted to str
             company_description=company.company_description,
@@ -358,7 +335,8 @@ def get_trips_by_company(request, company_id: UUID4):
 
         company_with_trips_out = CompanyWithTripsOut(
             company=company_out,
-            trips=trip_out_list
+            trips=trip_out_list,
+            trip_details=trip_detail_out_list
         )
 
         return response(status.HTTP_200_OK, company_with_trips_out)
@@ -366,100 +344,123 @@ def get_trips_by_company(request, company_id: UUID4):
         return 404, {'message': 'Company not found.'}
 
 
-@trip_controller.get('/{trip_details_id}', response={
-    200: TripDetailOut,
+# @trip_controller.get('/{trip_details_id}', response={
+#     200: TripDetailOut,
+#     404: MessageOut
+# })
+# def get_trip_details_by_trip(request, trip_id: UUID4):
+#     try:
+#         trip_details = TripDetails.objects.get(trip_id=trip_id)
+#         return response(status.HTTP_200_OK, trip_details)
+#     except TripDetails.DoesNotExist:
+#         return 404, {'message': 'Trip not found.'}
+
+
+@trip_controller.get('/companies/{city_name}', response={
+    200: List[CompanyOut],
     404: MessageOut
 })
-def get_trip_details_by_trip(request, trip_id: UUID4):
+def get_companies_by_city_name(request, city_name: str):
     try:
-        trip_details = TripDetails.objects.get(trip_id=trip_id)
-        return response(status.HTTP_200_OK, trip_details)
-    except TripDetails.DoesNotExist:
-        return 404, {'message': 'Trip not found.'}
+        companies = Company.get_companies_by_city_name(city_name)
+
+        if not companies.exists():
+            return 404, {'message': 'No companies found for the specified city.'}
+
+        company_out_list = [CompanyOut(
+            id=company.id,
+            city=CityOut.from_orm(company.city),
+            company_name=company.company_name,
+            image=str(company.image),
+            company_description=company.company_description,
+        ) for company in companies]
+
+        return response(status.HTTP_200_OK, company_out_list)
+    except City.DoesNotExist:
+        return 404, {'message': 'City not found.'}
 
 
 merchant_controller = Router(tags=['Merchants'])
 
-PLACE_MODEL_MAP = {
-    'restaurant': Restaurant,
-    'stayplace': StayPlace,
-    'cafe': Cafe,
-    'touristplace': TouristPlace,
-    'mall': Mall,
-    'healthcentre': HealthCenter,
-    'holyplace': HolyPlace,
-    'financial': Financial,
-    'gasstation': GasStation,
-    'entertainment': Entertainment,
-    'gym': Sport,
-    'salons': Salons,
-}
+# @merchant_controller.post('/places', response={200: PlaceMixinOut, 404: MessageOut, 403: MessageOut}, auth=AuthBearer())
+# def add_place_by_merchant(request, place_data: PlaceCreate, images: List[UploadedFile] = File(...)):
+#     user = request.auth
+#     try:
+#         user = EmailAccount.objects.get(id=place_data.user_id)
+#     except EmailAccount.DoesNotExist:
+#         return 404, {'message': 'Merchant not found.'}
+#     try:
+#         city = City.objects.get(id=place_data.city_id)
+#     except City.DoesNotExist:
+#         return 404, {'message': 'City not found.'}
+#
+#     place_model = PLACE_MODEL_MAP.get(place_data.place_type.lower())
+#     if not place_model:
+#         return 404, {'message': 'Invalid place type.'}
+#
+#     if not user.is_merchant:
+#         return 403, {'message': 'Only merchants can add places.'}
+#
+#     if place_model.objects.filter(user=user).exists():
+#         return 403, {'message': 'Merchant can only add one place.'}
+#
+#     place_subtype = None
+#     if place_data.place_type.lower() == 'stayplace':
+#         place_subtype = place_data.type
+#
+#     if place := create_place(
+#             place_model, place_data, city, user, place_subtype, images
+#     ):
+#         return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
+#     else:
+#         return 404, {'message': 'Error creating the place.'}
+#
+#
+# def create_place(place_model, place_data, city, user, place_subtype, images):
+#     place = place_model(
+#         name=place_data.name,
+#         city=city,
+#         location=place_data.location,
+#         description=place_data.description,
+#         short_location=place_data.short_location,
+#         price=place_data.price,
+#         available=place_data.open,
+#         user=user,
+#     )
+#
+#     if hasattr(place, 'type'):
+#         place.type = place_subtype
+#
+#     place.save()
+#
+#     social_media = SocialMedia(
+#         facebook=place_data.social_media.facebook,
+#         instagram=place_data.social_media.instagram,
+#         telegram=place_data.social_media.telegram,
+#         whatsapp=place_data.social_media.whatsapp,
+#     )
+#     social_media.save()
+#     place.social_media = social_media
+#
+#     for image in images:
+#         place_image = Images(place=place, image=image)
+#         place_image.save()
+#
+#     place.save()
+#
+#     return place
 
 
-@merchant_controller.post('/places', response={200: PlaceMixinOut, 404: MessageOut, 403: MessageOut}, auth=AuthBearer())
-def add_place_by_merchant(request, place_data: PlaceCreate, images: List[UploadedFile] = File(...)):
-    user = request.auth
-    try:
-        user = EmailAccount.objects.get(id=place_data.user_id)
-    except EmailAccount.DoesNotExist:
-        return 404, {'message': 'Merchant not found.'}
-    try:
-        city = City.objects.get(id=place_data.city_id)
-    except City.DoesNotExist:
-        return 404, {'message': 'City not found.'}
-
-    place_model = PLACE_MODEL_MAP.get(place_data.place_type.lower())
-    if not place_model:
-        return 404, {'message': 'Invalid place type.'}
-
-    if not user.is_merchant:
-        return 403, {'message': 'Only merchants can add places.'}
-
-    if place_model.objects.filter(user=user).exists():
-        return 403, {'message': 'Merchant can only add one place.'}
-
-    place_subtype = None
-    if place_data.place_type.lower() == 'stayplace':
-        place_subtype = place_data.type
-
-    if place := create_place(
-        place_model, place_data, city, user, place_subtype, images
-    ):
-        return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
-    else:
-        return 404, {'message': 'Error creating the place.'}
-
-
-def create_place(place_model, place_data, city, user, place_subtype, images):
-    place = place_model(
-        name=place_data.name,
-        city=city,
-        location=place_data.location,
-        description=place_data.description,
-        short_location=place_data.short_location,
-        price=place_data.price,
-        available=place_data.available,
-        user=user,
-    )
-
-    if hasattr(place, 'type'):
-        place.type = place_subtype
-
-    place.save()
-
-    social_media = SocialMedia(
-        facebook=place_data.social_media.facebook,
-        instagram=place_data.social_media.instagram,
-        telegram=place_data.social_media.telegram,
-        whatsapp=place_data.social_media.whatsapp,
-    )
-    social_media.save()
-    place.social_media = social_media
-
-    for image in images:
-        place_image = Images(place=place, image=image)
-        place_image.save()
-
-    place.save()
-
-    return place
+# '''get merchant by token'''
+# @merchant_controller.get('/{merchant_id}', response={200: MerchantOut, 404: MessageOut}, auth=AuthBearer())
+# def get_merchant_by_token(request, merchant_id: UUID4):
+#     try:
+#         user = EmailAccount.objects.get(id=merchant_id)
+#         if not user.is_merchant:
+#             return 404, {'message': 'Merchant not found.'}
+#         merchant = Merchant.objects.get(user=user)
+#         return response(status.HTTP_200_OK, MerchantOut.from_orm(merchant))
+#     except EmailAccount.DoesNotExist:
+#         return 404, {'message': 'Merchant not found.'}
+#     except Merchant.DoesNotExist:
+#         return 404, {'message': 'Merchant not found.'}

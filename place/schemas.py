@@ -1,3 +1,4 @@
+import marshmallow
 from ninja import Schema
 from pydantic import UUID4, validator
 from typing import List, Optional
@@ -5,8 +6,7 @@ from pydantic import HttpUrl
 
 from account.schemas import AccountOut, MerchantOut
 from location.schemas import CityOut, CountryOut
-from place.models import PlaceMixin, StayPlace, TouristPlace, HealthCenter, HolyPlace, Financial, GasStation, \
-    Entertainment, Sport, Salons, Restaurant, Cafe, Mall
+from place.models import PlaceMixin
 
 
 class SocialMediaSchema(Schema):
@@ -28,18 +28,20 @@ class PlaceMixinOut(Schema):
     name: str
     # location: str
     city: CityOut
-    longitude: float=None
-    latitude: float=None
+    longitude: float = None
+    latitude: float = None
     description: str
     short_location: str
     price: Optional[float]
     place_images: List[PlaceImageOut]
-    social_media: Optional[SocialMediaSchema]
-    place_type: Optional[str]
-    type: Optional[str]=None
+    # social_media: Optional[SocialMediaSchema]
+    place_type: str
+    type: str
     average_rating: Optional[float]
     review_count: Optional[int]
-    available: Optional[str]
+    open: Optional[str]
+    phone_number: Optional[str]
+
     class Config:
         orm_mode = True
 
@@ -47,48 +49,7 @@ class PlaceMixinOut(Schema):
     def from_orm(place: PlaceMixin):
         is_available = place.get_social_media
 
-        if isinstance(place, Restaurant):
-
-            place_type = "Restaurant"
-            place_subtype = None  # Restaurant doesn't have a subtype field
-        elif isinstance(place, StayPlace):
-            place_type = "StayPlace"
-            place_subtype = place.type
-        elif isinstance(place, Cafe):
-            place_type = "Cafe"
-            place_subtype = None  # Cafe doesn't have a subtype field
-        elif isinstance(place, TouristPlace):
-            place_type = "TouristPlace"
-            place_subtype = None
-        elif isinstance(place, Mall):
-            place_type = "Mall"
-            place_subtype = None  # Mall doesn't have a subtype field
-        elif isinstance(place, HealthCenter):
-            place_type = "HealthCentre"
-            place_subtype = place.type
-        elif isinstance(place, HolyPlace):
-            place_type = "HolyPlace"
-            place_subtype = place.type
-        elif isinstance(place, Financial):
-            place_type = "Financial"
-            place_subtype = place.type
-        elif isinstance(place, GasStation):
-            place_type = "GasStation"
-            place_subtype = None  # GasStation doesn't have a subtype field
-        elif isinstance(place, Entertainment):
-            place_type = "Entertainment"
-            place_subtype = None  # Entertainment doesn't have a subtype field
-        elif isinstance(place, Sport):
-            place_type = "Gym"
-            place_subtype = Sport.type
-        elif isinstance(place, Salons):
-            place_type = "Salons"
-            place_subtype = place.type
-        else:
-            place_type = "PlaceMixin"  # Default type for the base class
-            place_subtype = None  # Default subtype if not applicable
-
-        user=place.user.is_merchant if place.user else None
+        user = place.user.is_merchant if place.user else None
         return PlaceMixinOut(
             id=place.id,
             name=place.name,
@@ -101,11 +62,12 @@ class PlaceMixinOut(Schema):
             average_rating=place.average_rating,
             review_count=place.review_count,
             social_media=is_available,
-            place_type=place_type,
-            type=place_subtype,
+            place_type=place.get_place_type,
+            type=place.get_place_sub_type,
             price=place.price,
-            avaialble=place.available,
-            user=user
+            open=place.open,
+            user=user,
+            phone_number=place.phone_number,
         )
 
 
@@ -143,6 +105,7 @@ class AdvertisementSchema(Schema):
     url: str = None
     place: PlaceMixinOut = None
 
+
 class OfferSchema(Schema):
     id: UUID4
     country: CountryOut
@@ -151,6 +114,7 @@ class OfferSchema(Schema):
     short_description: str
     url: str = None
     place: PlaceMixinOut = None
+
 
 class RecommendedPlacesOut(Schema):
     id: UUID4
@@ -177,7 +141,7 @@ class FavoritePlaceOut(Schema):
 
 class CompanyOut(Schema):
     id: UUID4
-    country: CountryOut
+    city: CityOut
     company_name: str
     image: str  # Ensure that the field type is set to str
     company_description: str
@@ -188,10 +152,6 @@ class TripOut(Schema):
     trip_name: str
     short_description: str
 
-class CompanyWithTripsOut(Schema):
-    company: CompanyOut
-    trips: List[TripOut]
-
 
 class TripDetailOut(Schema):
     trip: TripOut
@@ -201,13 +161,19 @@ class TripDetailOut(Schema):
     trip_images: List[PlaceImageOut] = None
 
 
+class CompanyWithTripsOut(Schema):
+    company: CompanyOut
+    trips: List[TripOut]
+    trip_details: List[TripDetailOut]
+
+
 class PlaceCreate(Schema):
     name: str
     city_id: UUID4
     location: str
-    description: str=None
-    short_location: str=None
-    price: float=None
+    description: str = None
+    short_location: str = None
+    price: float = None
     place_type: str  # New field to specify the type of place
 
     social_media: SocialMediaSchema = None
