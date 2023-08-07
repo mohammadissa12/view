@@ -8,6 +8,8 @@ from PIL import Image
 from django.db import models
 from location_field.models.plain import PlainLocationField
 from django.contrib.contenttypes.models import ContentType
+
+from account.models import EmailAccount
 from conf.utils.models import Entity
 
 User = get_user_model()
@@ -26,7 +28,7 @@ class PlaceSubType(Entity):
     def __str__(self):
         return f'{self.name} - {self.place_type}'
 class PlaceMixin(Entity):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_places', null=True, blank=True)
+    user = models.ForeignKey(EmailAccount, on_delete=models.CASCADE, related_name='user_places', null=True, blank=True)
     place_type = models.ForeignKey(PlaceType, on_delete=models.CASCADE, related_name='places',)
     type=models.ForeignKey(PlaceSubType, on_delete=models.CASCADE, related_name='place_sub_type_places', null=True, blank=True)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, related_name='city_places')
@@ -85,14 +87,14 @@ class PlaceMixin(Entity):
             return self.place_type.name
         except PlaceType.DoesNotExist:
             return None
-
-
     @property
     def get_place_sub_type(self):
         try:
             return self.type.name
         except PlaceSubType.DoesNotExist:
             return None
+
+
 
     class Meta:
         verbose_name = 'مكان'
@@ -177,7 +179,7 @@ class Reviews(Entity):
 
 class Advertisement(Entity):
     country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',
-                                related_name='advertisements')
+                                related_name='advertisements',null=True, blank=True)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, verbose_name='المدينة',
                              related_name='advertisements', blank=True, null=True)
 

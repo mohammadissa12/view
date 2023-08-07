@@ -1,10 +1,9 @@
-import marshmallow
 from ninja import Schema
-from pydantic import UUID4, validator
+from pydantic import UUID4
 from typing import List, Optional
 from pydantic import HttpUrl
 
-from account.schemas import AccountOut, MerchantOut
+from account.schemas import AccountOut
 from location.schemas import CityOut, CountryOut
 from place.models import PlaceMixin
 
@@ -28,15 +27,15 @@ class PlaceMixinOut(Schema):
     name: str
     # location: str
     city: CityOut
-    longitude: float = None
-    latitude: float = None
+    longitude: float
+    latitude: float
     description: str
     short_location: str
     price: Optional[float]
     place_images: List[PlaceImageOut]
-    # social_media: Optional[SocialMediaSchema]
+    social_media: Optional[SocialMediaSchema]
     place_type: str
-    type: str
+    type: str = None
     average_rating: Optional[float]
     review_count: Optional[int]
     open: Optional[str]
@@ -48,6 +47,8 @@ class PlaceMixinOut(Schema):
     @staticmethod
     def from_orm(place: PlaceMixin):
         is_available = place.get_social_media
+        if place.get_place_sub_type == None:
+            return ''
 
         user = place.user.is_merchant if place.user else None
         return PlaceMixinOut(
@@ -63,7 +64,7 @@ class PlaceMixinOut(Schema):
             review_count=place.review_count,
             social_media=is_available,
             place_type=place.get_place_type,
-            type=place.get_place_sub_type,
+            type=place.get_place_sub_type or None,
             price=place.price,
             open=place.open,
             user=user,
@@ -168,15 +169,14 @@ class CompanyWithTripsOut(Schema):
 
 
 class PlaceCreate(Schema):
+    user_id: UUID4
     name: str
     city_id: UUID4
     location: str
-    description: str = None
     short_location: str = None
+    description: str = None
     price: float = None
-    place_type: str  # New field to specify the type of place
-
+    place_type: str
+    type: str = None
+    open: str = None
     social_media: SocialMediaSchema = None
-    available: str = None
-    user_id: UUID4
-    type: Optional[str] = None

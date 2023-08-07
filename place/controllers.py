@@ -322,7 +322,7 @@ def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None
         places = places.filter(name__icontains=search)
 
     if place_type_name:
-         places=places.filter(place_type__name=place_type_name)
+        places = places.filter(place_type__name=place_type_name)
 
     if places:
         return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page, )
@@ -410,74 +410,63 @@ def get_companies_by_city_name(request, city_name: str):
 
 merchant_controller = Router(tags=['Merchants'])
 
-# @merchant_controller.post('/places', response={200: PlaceMixinOut, 404: MessageOut, 403: MessageOut}, auth=AuthBearer())
-# def add_place_by_merchant(request, place_data: PlaceCreate, images: List[UploadedFile] = File(...)):
-#     user = request.auth
-#     try:
-#         user = EmailAccount.objects.get(id=place_data.user_id)
-#     except EmailAccount.DoesNotExist:
-#         return 404, {'message': 'Merchant not found.'}
-#     try:
-#         city = City.objects.get(id=place_data.city_id)
-#     except City.DoesNotExist:
-#         return 404, {'message': 'City not found.'}
-#
-#     place_model = PLACE_MODEL_MAP.get(place_data.place_type.lower())
-#     if not place_model:
-#         return 404, {'message': 'Invalid place type.'}
-#
-#     if not user.is_merchant:
-#         return 403, {'message': 'Only merchants can add places.'}
-#
-#     if place_model.objects.filter(user=user).exists():
-#         return 403, {'message': 'Merchant can only add one place.'}
-#
-#     place_subtype = None
-#     if place_data.place_type.lower() == 'stayplace':
-#         place_subtype = place_data.type
-#
-#     if place := create_place(
-#             place_model, place_data, city, user, place_subtype, images
-#     ):
-#         return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
-#     else:
-#         return 404, {'message': 'Error creating the place.'}
-#
-#
-# def create_place(place_model, place_data, city, user, place_subtype, images):
-#     place = place_model(
-#         name=place_data.name,
-#         city=city,
-#         location=place_data.location,
-#         description=place_data.description,
-#         short_location=place_data.short_location,
-#         price=place_data.price,
-#         available=place_data.open,
-#         user=user,
-#     )
-#
-#     if hasattr(place, 'type'):
-#         place.type = place_subtype
-#
-#     place.save()
-#
-#     social_media = SocialMedia(
-#         facebook=place_data.social_media.facebook,
-#         instagram=place_data.social_media.instagram,
-#         telegram=place_data.social_media.telegram,
-#         whatsapp=place_data.social_media.whatsapp,
-#     )
-#     social_media.save()
-#     place.social_media = social_media
-#
-#     for image in images:
-#         place_image = Images(place=place, image=image)
-#         place_image.save()
-#
-#     place.save()
-#
-#     return place
 
+@merchant_controller.post('/places', response={200: PlaceMixinOut, 404: MessageOut, 403: MessageOut}, auth=AuthBearer())
+def add_place_by_merchant(request, place_data: PlaceCreate, images: List[UploadedFile] = File(...)):
+    user = request.auth
+    try:
+        user = EmailAccount.objects.get(id=place_data.user_id)
+    except EmailAccount.DoesNotExist:
+        return 404, {'message': 'Merchant not found.'}
+    if PlaceMixin.objects.filter(user=user).exists():
+        return 403, {'message': 'Merchant can only add one place.'}
+    try:
+        city = City.objects.get(id=place_data.city_id)
+    except City.DoesNotExist:
+        return 404, {'message': 'City not found.'}
+
+    place_type = PlaceType.objects.get(name=place_data.place_type)
+
+    if not place_type:
+        return 404, {'message': 'Invalid place type'}
+
+    # place_subtype = PlaceSubType.objects.get(name=place_data.type)
+    if place_data.type:
+        place_subtype = PlaceSubType.objects.get(name=place_data.type)
+    else:
+        place_subtype = None
+    if not user.is_merchant:
+        return 403, {'message': 'Only merchants can add places.'}
+
+    place = PlaceMixin.objects.create(
+        user=user,
+        name=place_data.name,
+        city=city,
+        location=place_data.location,
+        description=place_data.description,
+        short_location=place_data.short_location,
+        price=place_data.price,
+        open=place_data.open,
+        place_type=place_type,
+        type=place_subtype
+    )
+
+    social_media = SocialMedia(
+        facebook=place_data.social_media.facebook,
+        instagram=place_data.social_media.instagram,
+        telegram=place_data.social_media.telegram,
+        whatsapp=place_data.social_media.whatsapp,
+    )
+    social_media.save()
+    place.social_media = social_media
+
+    for image in images:
+        place_image = Images(place=place, image=image)
+        place_image.save()
+
+    place.save()
+
+    return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
 
 # '''get merchant by token'''
 # @merchant_controller.get('/{merchant_id}', response={200: MerchantOut, 404: MessageOut}, auth=AuthBearer())
