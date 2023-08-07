@@ -47,8 +47,7 @@ class PlaceMixinOut(Schema):
     @staticmethod
     def from_orm(place: PlaceMixin):
         is_available = place.get_social_media
-        if place.get_place_sub_type == None:
-            return ''
+
 
         user = place.user.is_merchant if place.user else None
         return PlaceMixinOut(

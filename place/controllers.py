@@ -47,9 +47,9 @@ def get_places_by_city_and_type(request, city_id: UUID4, place_type_name: str = 
         return 404, {'message': 'City not found.'}
     places = PlaceMixin.objects.filter(city=city)
     if place_type_name:
-        places = places.filter(place_type_name=place_type_name)
+        places = places.filter(place_type__name=place_type_name)
     if type_name:
-        places = places.filter(type_name=type_name)
+        places = places.filter(type__name=type_name)
     if sort_by_price == "low":
         places = places.order_by('price')
     elif sort_by_price == "high":

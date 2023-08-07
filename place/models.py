@@ -16,7 +16,21 @@ User = get_user_model()
 
 
 class PlaceType(Entity):
-    name = models.CharField('الاسم', max_length=50, )
+    class PlaceTypeChoices(models.TextChoices):
+        restaurant = 'restaurant', 'مطعم'
+        stayplace = 'stayplace', 'مكان اقامة'
+        cafe = 'cafe', 'مقهى'
+        touristplace = 'touristplace', 'مكان سياحي'
+        mall = 'mall', 'مول'
+        healthcenter = 'healthcenter', 'مركز صحي'
+        holyplace = 'holyplace', 'مكان مقدس'
+        financial = 'financial', 'مالي'
+        gasstation = 'gasstation', 'محطة وقود'
+        entertainment = 'entertainment', 'ترفيهي'
+        sport = 'sport', 'رياضي'
+        salons = 'salons', 'صالونات'
+
+    name = models.CharField('الاسم', max_length=50, choices=PlaceTypeChoices.choices,)
 
     def __str__(self):
         return self.name
@@ -86,21 +100,14 @@ class PlaceMixin(Entity):
         try:
             return self.place_type.name
         except PlaceType.DoesNotExist:
-            return None
+            return 'لا يوجد'
+
     @property
     def get_place_sub_type(self):
-        try:
-            return self.type.name
-        except PlaceSubType.DoesNotExist:
-            return None
+        return self.type.name if self.type else None
 
 
 
-    class Meta:
-        verbose_name = 'مكان'
-        verbose_name_plural = 'اماكن'
-        indexes = [
-            models.Index(fields=['location'])]
 
 
 class SocialMedia(Entity):
