@@ -442,42 +442,83 @@ def add_place_by_merchant(request, place_data: PlaceCreate, images: List[Uploade
         user=user,
         name=place_data.name,
         city=city,
+        place_type=place_type,
+        type=place_subtype,
         location=place_data.location,
         description=place_data.description,
         short_location=place_data.short_location,
         price=place_data.price,
         open=place_data.open,
-        place_type=place_type,
-        type=place_subtype
+        phone_number=place_data.phone_number,
     )
-
-    social_media = SocialMedia(
-        facebook=place_data.social_media.facebook,
-        instagram=place_data.social_media.instagram,
-        telegram=place_data.social_media.telegram,
-        whatsapp=place_data.social_media.whatsapp,
-    )
-    social_media.save()
-    place.social_media = social_media
 
     for image in images:
         place_image = Images(place=place, image=image)
         place_image.save()
 
+    social_media = SocialMedia.objects.create(
+        facebook=place_data.facebook,
+        instagram=place_data.instagram,
+        telegram=place_data.telegram,
+        whatsapp=place_data.whatsapp,
+    )
+    place.social_media = social_media
+
+    social_media.save()
     place.save()
 
     return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
 
-# '''get merchant by token'''
-# @merchant_controller.get('/{merchant_id}', response={200: MerchantOut, 404: MessageOut}, auth=AuthBearer())
-# def get_merchant_by_token(request, merchant_id: UUID4):
-#     try:
-#         user = EmailAccount.objects.get(id=merchant_id)
-#         if not user.is_merchant:
-#             return 404, {'message': 'Merchant not found.'}
-#         merchant = Merchant.objects.get(user=user)
-#         return response(status.HTTP_200_OK, MerchantOut.from_orm(merchant))
-#     except EmailAccount.DoesNotExist:
-#         return 404, {'message': 'Merchant not found.'}
-#     except Merchant.DoesNotExist:
-#         return 404, {'message': 'Merchant not found.'}
+
+@merchant_controller.get('/merchant/place', response={200: PlaceMixinOut, 404: MessageOut}, auth=AuthBearer())
+def get_merchant_place(request):
+    user = request.auth
+    try:
+        user = EmailAccount.objects.get(id=user.id)
+    except EmailAccount.DoesNotExist:
+        return 404, {'message': 'Merchant not found.'}
+    if not user.is_merchant:
+        return 404, {'message': 'Merchant not found.'}
+    try:
+        place = PlaceMixin.objects.get(user=user)
+        return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
+    except PlaceMixin.DoesNotExist:
+        return 404, {'message': 'Place not found.'}
+
+
+@merchant_controller.put('/merchant/place/edit', response={200: PlaceMixinOut, 404: MessageOut}, auth=AuthBearer())
+def edit_merchant_place(request, place_data: PlaceUpdate,
+                        ):
+    user = request.auth
+    try:
+        user = EmailAccount.objects.get(id=user.id)
+    except EmailAccount.DoesNotExist:
+        return 404, {'message': 'Account not found.'}
+    if not user.is_merchant:
+        return 404, {'message': 'Merchant not found.'}
+    try:
+        place = PlaceMixin.objects.get(user=user)
+        social_media = SocialMedia.objects.get(id=place.social_media.id)
+        social_media.facebook = place_data.facebook
+        social_media.instagram = place_data.instagram
+        social_media.telegram = place_data.telegram
+        social_media.whatsapp = place_data.whatsapp
+        social_media.save()
+
+        place.name = place_data.name
+        place.description = place_data.description
+        place.price = place_data.price
+        place.open = place_data.open
+        place.phone_number = place_data.phone_number
+
+        place.save()
+
+        # if images:
+        #     for image in images:
+        #         place_image = Images(place=place, image=image)
+        #         place_image.save()
+
+        return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
+    except PlaceMixin.DoesNotExist:
+        return 404, {'message': 'Place not found.'}
+

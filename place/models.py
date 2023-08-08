@@ -1,7 +1,8 @@
 from datetime import date
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.fields import GenericRelation
+from math import radians, cos, sin, asin, sqrt
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import F
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from PIL import Image
@@ -30,10 +31,11 @@ class PlaceType(Entity):
         sport = 'sport', 'رياضي'
         salons = 'salons', 'صالونات'
 
-    name = models.CharField('الاسم', max_length=50, choices=PlaceTypeChoices.choices,)
+    name = models.CharField('الاسم', max_length=50, choices=PlaceTypeChoices.choices, )
 
     def __str__(self):
         return self.name
+
 
 class PlaceSubType(Entity):
     name = models.CharField('الاسم', max_length=50, )
@@ -41,10 +43,13 @@ class PlaceSubType(Entity):
 
     def __str__(self):
         return f'{self.name} - {self.place_type}'
+
+
 class PlaceMixin(Entity):
     user = models.ForeignKey(EmailAccount, on_delete=models.CASCADE, related_name='user_places', null=True, blank=True)
-    place_type = models.ForeignKey(PlaceType, on_delete=models.CASCADE, related_name='places',)
-    type=models.ForeignKey(PlaceSubType, on_delete=models.CASCADE, related_name='place_sub_type_places', null=True, blank=True)
+    place_type = models.ForeignKey(PlaceType, on_delete=models.CASCADE, related_name='places', )
+    type = models.ForeignKey(PlaceSubType, on_delete=models.CASCADE, related_name='place_sub_type_places', null=True,
+                             blank=True)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, related_name='city_places')
     name = models.CharField('الاسم', max_length=50, )
     description = models.TextField('الوصف', )
@@ -53,7 +58,6 @@ class PlaceMixin(Entity):
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661')
     price = models.FloatField('السعر', max_length=50, null=True, blank=True)
     open = models.CharField('المتاح', max_length=50, null=True, blank=True)
-
 
     def get_average_rating(self) -> float:
         return Reviews.objects.filter(place=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
@@ -100,14 +104,33 @@ class PlaceMixin(Entity):
         try:
             return self.place_type.name
         except PlaceType.DoesNotExist:
-            return 'لا يوجد'
+            return None
 
     @property
     def get_place_sub_type(self):
         return self.type.name if self.type else None
 
+    def haversine(self,lon1, lat1, lon2, lat2):
+        # calculate haversine distance
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+        c = 2 * asin(sqrt(a))
+        return 6367 * c
 
+    @property
+    def get_nearest_places(self, max_distance=10, limit=10):
+        target_lon = self.longitude
+        target_lat = self.latitude
 
+        places = PlaceMixin.objects.annotate(
+            distance=self.haversine(F('longitude'), F('latitude'), target_lon, target_lat)
+        )
+
+        places = places.filter(distance__lte=max_distance).order_by('distance')
+
+        return places[:limit]
 
 
 class SocialMedia(Entity):
@@ -128,6 +151,7 @@ class SocialMedia(Entity):
         'telegram': 'telegram',
         'whatsapp': 'whatsapp',
     }
+
     @property
     def is_available(self):
         available_apps = []
@@ -186,7 +210,7 @@ class Reviews(Entity):
 
 class Advertisement(Entity):
     country = models.ForeignKey('location.Country', on_delete=models.CASCADE, verbose_name='الدولة',
-                                related_name='advertisements',null=True, blank=True)
+                                related_name='advertisements', null=True, blank=True)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, verbose_name='المدينة',
                              related_name='advertisements', blank=True, null=True)
 

@@ -178,4 +178,19 @@ class PlaceCreate(Schema):
     place_type: str
     type: str = None
     open: str = None
-    social_media: SocialMediaSchema = None
+    phone_number: str = None
+    facebook: str = None
+    instagram: str = None
+    telegram: str = None
+    whatsapp: str = None
+
+class PlaceUpdate(Schema):
+    name: str = None
+    description: str = None
+    price: float = None
+    open: str = None
+    phone_number: int = None
+    facebook: str = None
+    instagram: str = None
+    telegram: str = None
+    whatsapp: str = None
