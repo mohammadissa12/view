@@ -146,6 +146,12 @@ class CompanyOut(Schema):
     image: str  # Ensure that the field type is set to str
     company_description: str
 
+class CompanyOut1(Schema):
+    id: UUID4
+    city: CityOut
+    company_name: str
+    image: str  # Ensure that the field type is set to str
+    company_description: str
 
 class TripOut(Schema):
     id: UUID4

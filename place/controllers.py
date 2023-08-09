@@ -372,16 +372,6 @@ def get_trips_by_company(request, company_id: UUID4):
         return 404, {'message': 'Company not found.'}
 
 
-# @trip_controller.get('/{trip_details_id}', response={
-#     200: TripDetailOut,
-#     404: MessageOut
-# })
-# def get_trip_details_by_trip(request, trip_id: UUID4):
-#     try:
-#         trip_details = TripDetails.objects.get(trip_id=trip_id)
-#         return response(status.HTTP_200_OK, trip_details)
-#     except TripDetails.DoesNotExist:
-#         return 404, {'message': 'Trip not found.'}
 
 
 @trip_controller.get('/companies/{city_name}', response={
@@ -435,7 +425,7 @@ def add_place_by_merchant(request, place_data: PlaceCreate, images: List[Uploade
         place_subtype = PlaceSubType.objects.get(name=place_data.type)
     else:
         place_subtype = None
-    if not user.is_merchant:
+    if not user.is_merchant and not user.is_free:
         return 403, {'message': 'Only merchants can add places.'}
 
     place = PlaceMixin.objects.create(
@@ -477,7 +467,7 @@ def get_merchant_place(request):
         user = EmailAccount.objects.get(id=user.id)
     except EmailAccount.DoesNotExist:
         return 404, {'message': 'Merchant not found.'}
-    if not user.is_merchant:
+    if not user.is_merchant and not user.is_free:
         return 404, {'message': 'Merchant not found.'}
     try:
         place = PlaceMixin.objects.get(user=user)
@@ -494,7 +484,7 @@ def edit_merchant_place(request, place_data: PlaceUpdate,
         user = EmailAccount.objects.get(id=user.id)
     except EmailAccount.DoesNotExist:
         return 404, {'message': 'Account not found.'}
-    if not user.is_merchant:
+    if not user.is_merchant and not user.is_free:
         return 404, {'message': 'Merchant not found.'}
     try:
         place = PlaceMixin.objects.get(user=user)

@@ -110,27 +110,11 @@ class PlaceMixin(Entity):
     def get_place_sub_type(self):
         return self.type.name if self.type else None
 
-    def haversine(self,lon1, lat1, lon2, lat2):
-        # calculate haversine distance
-        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-        dlon = lon2 - lon1
-        dlat = lat2 - lat1
-        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-        c = 2 * asin(sqrt(a))
-        return 6367 * c
 
-    @property
-    def get_nearest_places(self, max_distance=10, limit=10):
-        target_lon = self.longitude
-        target_lat = self.latitude
-
-        places = PlaceMixin.objects.annotate(
-            distance=self.haversine(F('longitude'), F('latitude'), target_lon, target_lat)
-        )
-
-        places = places.filter(distance__lte=max_distance).order_by('distance')
-
-        return places[:limit]
+# @receiver(pre_save, sender=EmailAccount)
+# def handle_merchant_status(sender, instance, **kwargs):
+#     if instance.id and instance.is_merchant != EmailAccount.objects.get(id=instance.id).is_merchant and not instance.is_merchant:
+#         PlaceMixin.objects.filter(user=instance, is_active=True).update(is_active=False)
 
 
 class SocialMedia(Entity):

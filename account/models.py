@@ -1,10 +1,8 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
-import datetime
+from django.utils import timezone
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 from conf.utils.models import Entity
 
@@ -98,20 +96,14 @@ class EmailAccount(AbstractUser, Entity):
             return True
         return False
 
-
-
-    # Override the save method to set the merchant_expiry_date when is_merchant is granted.
     def save(self, *args, **kwargs):
         if self.is_merchant and not self.merchant_expiry_date:
-            # Set the merchant_expiry_date to exactly one year from the current date.
-            self.merchant_expiry_date = datetime.date.today() + datetime.timedelta(days=365)
+            self.merchant_expiry_date = timezone.now().date() + timezone.timedelta(days=365)
+        elif self.merchant_expiry_date and timezone.now().date() > self.merchant_expiry_date:
+            self.is_merchant = False
+
         super().save(*args, **kwargs)
 
-    # Add a method to check if the merchant status has expired.
-    def is_merchant_expired(self):
-        if self.is_merchant and self.merchant_expiry_date:
-            return datetime.date.today() > self.merchant_expiry_date
-        return False
     @property
     def image_url(self):
         return (

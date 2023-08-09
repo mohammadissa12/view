@@ -9,7 +9,7 @@ from location.models import Country, City
 from location.schemas import CountryOut, CityOut
 from place.models import Advertisement, PlaceMixin, Reviews
 from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut, PlaceMixinOut, OfferSchema, \
-    CompanyOut
+    CompanyOut, CompanyOut1
 
 
 class CountrySchema2(Schema):
@@ -31,7 +31,7 @@ class CountrySchema2(Schema):
             advertisements=[AdvertisementSchema.from_orm(ad) for ad in country.get_advertisements],
             recommended_places=[RecommendedPlacesOut.from_orm(place) for place in country.get_recommended_places],
             offers=[OfferSchema.from_orm(offer) for offer in country.get_offers],
-            company =[CompanyOut.from_orm(company) for company in country.get_company],
+            company =[CompanyOut1.from_orm(company) for company in country.get_company],
             app_version=AppDetails.from_orm(account.models.AppDetails.objects.first()).app_version
         )
 
