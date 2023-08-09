@@ -105,6 +105,11 @@ class EmailAccount(AbstractUser, Entity):
 
         super().save(*args, **kwargs)
 
+    def is_merchant_expired(self):
+        if  self.merchant_expiry_date:
+            return timezone.date.today() > self.merchant_expiry_date
+        return True
+
     @property
     def image_url(self):
         return (

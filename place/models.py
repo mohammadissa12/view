@@ -59,6 +59,7 @@ class PlaceMixin(Entity):
     price = models.FloatField('السعر', max_length=50, null=True, blank=True)
     open = models.CharField('المتاح', max_length=50, null=True, blank=True)
 
+    is_archived = models.BooleanField('تم الأرشفة', default=False)
     def get_average_rating(self) -> float:
         return Reviews.objects.filter(place=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
 
@@ -110,12 +111,16 @@ class PlaceMixin(Entity):
     def get_place_sub_type(self):
         return self.type.name if self.type else None
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
-# @receiver(pre_save, sender=EmailAccount)
-# def handle_merchant_status(sender, instance, **kwargs):
-#     if instance.id and instance.is_merchant != EmailAccount.objects.get(id=instance.id).is_merchant and not instance.is_merchant:
-#         PlaceMixin.objects.filter(user=instance, is_active=True).update(is_active=False)
-
+        if self.user.is_merchant_expired():
+            print("Merchant is expired. Archiving the place.")
+            # Merchant is expired, archive the place
+            self.is_archived = True
+            self.save(update_fields=['is_archived'])
+        else:
+            print("Merchant is not expired. Place remains active.")
 
 class SocialMedia(Entity):
     place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True,
