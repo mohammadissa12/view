@@ -46,12 +46,19 @@ class CitySchema2(Schema):
 
     @staticmethod
     def from_orm(city: City):
+        highest_rated_places = PlaceMixin.objects.filter(city=city).annotate(
+            avg_rating=Avg('reviews__rating')
+        ).filter(
+            avg_rating__isnull=False
+        ).order_by(
+            '-avg_rating'
+        )[:10]  # You can adjust the number as needed
+
         return CitySchema2(
             city_id=city.id,
             city_name=city.city_name,
             country=CountryOut.from_orm(city.country),
             advertisements=[AdvertisementSchema.from_orm(ad) for ad in city.get_advertisements],
             latest_places=[LatestPlacesOut.from_orm(place) for place in city.get_latest_places],
-            highest_rated_places=[PlaceMixinOut.from_orm(place) for place in city.get_high_rated],
-
+            highest_rated_places=[PlaceMixinOut.from_orm(place) for place in highest_rated_places]
         )

@@ -1,6 +1,8 @@
 from datetime import date
 from django.contrib.auth import get_user_model
 from math import radians, cos, sin, asin, sqrt
+
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import F
 from django.db.models.signals import pre_save, post_save
@@ -9,7 +11,7 @@ from PIL import Image
 from django.db import models
 from location_field.models.plain import PlainLocationField
 from django.contrib.contenttypes.models import ContentType
-
+from django.utils.translation import gettext_lazy as _
 from account.models import EmailAccount
 from conf.utils.models import Entity
 
@@ -60,6 +62,7 @@ class PlaceMixin(Entity):
     open = models.CharField('المتاح', max_length=50, null=True, blank=True)
 
     is_archived = models.BooleanField('تم الأرشفة', default=False)
+
     def get_average_rating(self) -> float:
         return Reviews.objects.filter(place=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
 
@@ -111,16 +114,17 @@ class PlaceMixin(Entity):
     def get_place_sub_type(self):
         return self.type.name if self.type else None
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    #
+    #     if self.user.is_merchant_expired():
+    #         print("Merchant is expired. Archiving the place.")
+    #         # Merchant is expired, archive the place
+    #         self.is_archived = True
+    #         self.save(update_fields=['is_archived'])
+    #     else:
+    #         print("Merchant is not expired. Place remains active.")
 
-        if self.user.is_merchant_expired():
-            print("Merchant is expired. Archiving the place.")
-            # Merchant is expired, archive the place
-            self.is_archived = True
-            self.save(update_fields=['is_archived'])
-        else:
-            print("Merchant is not expired. Place remains active.")
 
 class SocialMedia(Entity):
     place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True,
@@ -184,7 +188,7 @@ class Images(Entity):
 class Reviews(Entity):
     user = models.ForeignKey('account.EmailAccount', on_delete=models.CASCADE)
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE)
-    comment = models.TextField('التعليق', null=True, blank=True)
+    comment = models.TextField('التعليق', null=True, blank=True,)
     rating = models.PositiveSmallIntegerField('التقييم', default=1,
                                               validators=[MinValueValidator(1), MaxValueValidator(5)])
     reported = models.BooleanField('تم الابلاغ', default=False)  # New field for reporting
@@ -195,6 +199,7 @@ class Reviews(Entity):
     class Meta:
         verbose_name = 'تعليق'
         verbose_name_plural = 'تعليقات'
+
 
 
 class Advertisement(Entity):
@@ -233,8 +238,6 @@ class Offers(Entity):
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان', related_name='offers',
                               blank=True, null=True)
     image = models.ImageField('الصورة', upload_to='offers')
-    title = models.CharField('العنوان', max_length=50)
-    short_description = models.CharField('الوصف المختصر', max_length=100)
     url = models.URLField('الرابط', max_length=100, blank=True, null=True)
     start_date = models.DateField('تاريخ البداية')
     end_date = models.DateField('تاريخ النهاية', )

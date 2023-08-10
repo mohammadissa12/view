@@ -33,12 +33,10 @@ class AccountLoginIn(Schema):
 
 
 class AccountUpdateIn(Schema):
-
     first_name: str = None
     last_name: str = None
     email: EmailStr = None
     phone_number: int
-    image: str = None
 
 
 class ImageUpdateIn(Schema):

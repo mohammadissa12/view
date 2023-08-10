@@ -77,5 +77,6 @@ class City(Entity):
 
     @property
     def get_high_rated(self):
-        return self.city_places.filter(reviews__isnull=False).order_by('-reviews__rating')[:15]
+        return self.city_places.filter(reviews__isnull=False).distinct().order_by('-reviews__rating')[:15]
+
 
