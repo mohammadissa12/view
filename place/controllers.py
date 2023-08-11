@@ -74,79 +74,6 @@ def get_places_user_reviewed(request):
         return 404, {'message': 'No reviewed places found for the user.'}
 
 
-# advertisement_controller = Router(tags=['Advertisement'])
-#
-#
-# @advertisement_controller.get('/advertisement', response={
-#     200: List[AdvertisementSchema],
-#     404: MessageOut
-# })
-# def get_advertisement_by_country(request, country_id: UUID4, ):
-#     if advertisement := Advertisement.objects.filter(country_id=country_id):
-#         return response(status.HTTP_200_OK, advertisement)
-#     return 404, {'message': 'No advertisement found.'}
-#
-#
-# @advertisement_controller.get('/advertisement/city/{city_id}', response={
-#     200: List[AdvertisementSchema],
-#     404: MessageOut
-# })
-# def get_advertisement_by_city(request, city_id: UUID4):
-#     if advertisement := Advertisement.objects.filter(city_id=city_id):
-#         return response(status.HTTP_200_OK, advertisement)
-#     return 404, {'message': 'No advertisement found.'}
-#
-#
-# RecommendedPlaces_controller = Router(tags=['Recommended Places'])
-#
-#
-# @RecommendedPlaces_controller.get('/recommended-places', response={
-#     200: List[RecommendedPlacesOut],
-#     404: MessageOut
-# })
-# def get_recommended_places_by_country(request, country_id: UUID4):
-#     if recommended_places := RecommendedPlaces.objects.filter(
-#             country_id=country_id
-#     ):
-#         return response(status.HTTP_200_OK, recommended_places)
-#     return 404, {'message': 'No recommended places found.'}
-#
-#
-# latest_places_controller = Router(tags=['Latest Places'])
-#
-#
-# @latest_places_controller.get('/latest-places/country', response={
-#     200: List[LatestPlacesOut],
-#     404: MessageOut
-# })
-# def get_latest_places_by_country(request, country_id: UUID4):
-#     try:
-#         country = Country.objects.get(id=country_id)
-#         if latest_places := LatestPlaces.objects.filter(
-#                 country=country
-#         ).order_by('-created')[:40]:
-#             return response(status.HTTP_200_OK, latest_places)
-#         return 404, {'message': 'No latest places found.'}
-#     except Country.DoesNotExist:
-#         return 404, {'message': 'Country not found.'}
-#
-#
-# @latest_places_controller.get('/latest-places/city/{city_id}', response={
-#     200: List[LatestPlacesCity],
-#     404: MessageOut
-# })
-# def get_latest_places_by_city(request, city_id: UUID4):
-#     try:
-#         city = City.objects.get(id=city_id)
-#         if latest_places := LatestPlaces.objects.filter(
-#                 city=city
-#         ).order_by('-created')[:40]:
-#             return response(status.HTTP_200_OK, latest_places)
-#         return 404, {'message': 'No latest places found.'}
-#     except City.DoesNotExist:
-#         return 404, {'message': 'City not found.'}
-
-
 favorite_places_controller = Router(tags=['favorite places'])
 
 
@@ -271,36 +198,6 @@ def report_comment(request, comment_id: UUID4):
 
 search_controller = Router(tags=['Search'])
 
-
-# @search_controller.get('/places/search', response={
-#     200: PlaceMixinSchema,
-#     404: MessageOut
-# })
-# def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None, place_type: str = None,
-#                   per_page: int = 10, page: int = 1):
-#     try:
-#         country = Country.objects.get(id=country_id)
-#     except Country.DoesNotExist:
-#         return 404, {'message': 'Country not found.'}
-#
-#     places = PlaceMixin.objects.filter(city__country=country)
-#
-#     if city_id:
-#         places = places.filter(city_id=city_id)
-#
-#     if search:
-#         places = places.filter(name__icontains=search)
-#
-#     if place_type:
-#         if filtered_places := filter_by_place_type(places, place_type):
-#             return response(status.HTTP_200_OK, filtered_places, paginated=True, per_page=per_page, page=page, )
-#         else:
-#             return 404, {'message': 'No places found for the specified type.'}
-#
-#     if places:
-#         return response(status.HTTP_200_OK, places, paginated=True, per_page=per_page, page=page, )
-#
-#     return 404, {'message': 'No places found.'}
 
 @search_controller.get('/places/search', response={
     200: PlaceMixinSchema,

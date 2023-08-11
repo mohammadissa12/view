@@ -20,10 +20,19 @@ class CountrySchema2(Schema):
     advertisements: List[AdvertisementSchema]
     recommended_places: List[RecommendedPlacesOut]
     offers: List[OfferSchema]
-    company: List[CompanyOut]
+    companies_with_cities: List[dict] = None
 
     @staticmethod
     def from_orm(country: Country):
+        companies_with_cities = []
+
+        for company in country.get_company:
+            company_info = {
+                "city_name": company.city.city_name if company.city else None,
+                # "associated_city_id": company.city.id.hex if company.city else None
+            }
+            companies_with_cities.append(company_info)
+
         return CountrySchema2(
             country_id=country.id,
             country_name=country.country_name,
@@ -31,10 +40,9 @@ class CountrySchema2(Schema):
             advertisements=[AdvertisementSchema.from_orm(ad) for ad in country.get_advertisements],
             recommended_places=[RecommendedPlacesOut.from_orm(place) for place in country.get_recommended_places],
             offers=[OfferSchema.from_orm(offer) for offer in country.get_offers],
-            company =[CompanyOut1.from_orm(company) for company in country.get_company],
+            companies_with_cities=companies_with_cities,
             app_version=AppDetails.from_orm(account.models.AppDetails.objects.first()).app_version
         )
-
 
 class CitySchema2(Schema):
     city_id: UUID4 = None

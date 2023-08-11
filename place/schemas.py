@@ -48,7 +48,6 @@ class PlaceMixinOut(Schema):
     def from_orm(place: PlaceMixin):
         is_available = place.get_social_media
 
-
         user = place.user.is_merchant if place.user else None
         return PlaceMixinOut(
             id=place.id,
@@ -146,12 +145,14 @@ class CompanyOut(Schema):
     image: str  # Ensure that the field type is set to str
     company_description: str
 
+
 class CompanyOut1(Schema):
     id: UUID4
     city: CityOut
     company_name: str
     image: str  # Ensure that the field type is set to str
     company_description: str
+
 
 class TripOut(Schema):
     id: UUID4
@@ -189,6 +190,7 @@ class PlaceCreate(Schema):
     instagram: str = None
     telegram: str = None
     whatsapp: str = None
+
 
 class PlaceUpdate(Schema):
     name: str = None

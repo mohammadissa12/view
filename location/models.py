@@ -36,6 +36,7 @@ class Country(Entity):
     def get_cities(self):
         return self.country_city.all()
 
+
     @property
     def get_advertisements(self):
         return self.advertisements.all()
@@ -55,6 +56,9 @@ class Country(Entity):
     @property
     def get_company(self):
         return self.company.all()
+
+
+
 
 class City(Entity):
     city_name = models.CharField('اسم المدينة', max_length=50, unique=True)
@@ -79,4 +83,8 @@ class City(Entity):
     def get_high_rated(self):
         return self.city_places.filter(reviews__isnull=False).distinct().order_by('-reviews__rating')[:15]
 
+
+    @property
+    def get_company(self):
+        return self.company.all()
 

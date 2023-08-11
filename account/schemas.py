@@ -11,6 +11,8 @@ class AccountOut(Schema):
     last_name: str
     phone_number: int
     image_url: HttpUrl = None
+    is_merchant: bool
+    is_free: bool
 
 
 class AccountSignupIn(Schema):
@@ -22,10 +24,23 @@ class AccountSignupIn(Schema):
     password2: str
 
 
+class SignInOut(Schema):
+    id: UUID4
+    first_name: str
+    last_name: str
+    phone_number: int
+    image_url: HttpUrl = None
+    is_merchant: bool
+    is_free: bool
+
+
 class AccountSignupOut(Schema):
     profile: AccountOut
     token: Token
 
+class AccountSignInOut(Schema):
+    profile: SignInOut
+    token: Token
 
 class AccountLoginIn(Schema):
     phone_number: int

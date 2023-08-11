@@ -14,7 +14,7 @@ from conf.utils.permissions import AuthBearer, create_token
 from conf.utils.utils import response
 from .models import EmailAccount
 from .schemas import AccountSignupOut, AccountSignupIn, AccountLoginIn, ChangePassword, AccountOut, AccountUpdateIn, \
-    ImageUpdateIn, Profile
+    ImageUpdateIn, Profile, AccountSignInOut
 
 auth_controller = Router(tags=['Auth'])
 
@@ -48,7 +48,7 @@ def signup(request, payload: AccountSignupIn):
             return response(500, {'message': 'Internal server error'})
 
 
-@auth_controller.post('/login', response={200: AccountSignupOut, 404: MessageOut})
+@auth_controller.post('/login', response={200: AccountSignInOut, 404: MessageOut})
 def login(request, payload: AccountLoginIn):
     try:
         user = EmailAccount.objects.get(phone_number=payload.phone_number)

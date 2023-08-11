@@ -326,6 +326,7 @@ class Company(Entity):
         return cls.objects.filter(city__city_name=city_name)
 
 
+
 class Trip(Entity):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='trip')
     trip_name = models.CharField('اسم الرحلة', max_length=50)
