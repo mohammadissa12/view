@@ -252,7 +252,7 @@ def get_trips_by_company(request, company_id: UUID4):
 
         company_out = CompanyOut(
             id=company.id,
-            city=CityOut.from_orm(company.city),  # Set the city field with CityOut object
+            city=CityOut.from_orm(company.city),
             company_name=company.company_name,
             image=str(company.image),  # Ensure that the image is converted to str
             company_description=company.company_description,
@@ -317,7 +317,7 @@ def add_place_by_merchant(request, place_data: PlaceCreate, images: List[Uploade
     if not place_type:
         return 404, {'message': 'Invalid place type'}
 
-    # place_subtype = PlaceSubType.objects.get(name=place_data.type)
+
     if place_data.type:
         place_subtype = PlaceSubType.objects.get(name=place_data.type)
     else:
@@ -398,12 +398,10 @@ def edit_merchant_place(request, place_data: PlaceUpdate,
         place.open = place_data.open
         place.phone_number = place_data.phone_number
 
+        for image in place_data.images:
+            image_content = image.read()  # Read the image content
+            # Save the image content to your data model (e.g., PlaceMixinImages model)
         place.save()
-
-        # if images:
-        #     for image in images:
-        #         place_image = Images(place=place, image=image)
-        #         place_image.save()
 
         return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
     except PlaceMixin.DoesNotExist:

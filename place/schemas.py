@@ -2,7 +2,7 @@ from ninja import Schema
 from pydantic import UUID4
 from typing import List, Optional
 from pydantic import HttpUrl
-
+from ninja import UploadedFile
 from account.schemas import AccountOut
 from location.schemas import CityOut, CountryOut
 from place.models import PlaceMixin
@@ -145,15 +145,6 @@ class CompanyOut(Schema):
     image: str  # Ensure that the field type is set to str
     company_description: str
 
-
-class CompanyOut1(Schema):
-    id: UUID4
-    city: CityOut
-    company_name: str
-    image: str  # Ensure that the field type is set to str
-    company_description: str
-
-
 class TripOut(Schema):
     id: UUID4
     trip_name: str
@@ -202,3 +193,4 @@ class PlaceUpdate(Schema):
     instagram: str = None
     telegram: str = None
     whatsapp: str = None
+    images: List[UploadedFile] = []

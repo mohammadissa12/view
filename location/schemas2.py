@@ -8,8 +8,8 @@ from account.schemas import AppDetails
 from location.models import Country, City
 from location.schemas import CountryOut, CityOut
 from place.models import Advertisement, PlaceMixin, Reviews
-from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut, PlaceMixinOut, OfferSchema, \
-    CompanyOut, CompanyOut1
+from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlacesOut, PlaceMixinOut, OfferSchema
+
 
 
 class CountrySchema2(Schema):

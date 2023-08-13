@@ -14,7 +14,7 @@ from conf.utils.permissions import AuthBearer, create_token
 from conf.utils.utils import response
 from .models import EmailAccount
 from .schemas import AccountSignupOut, AccountSignupIn, AccountLoginIn, ChangePassword, AccountOut, AccountUpdateIn, \
-    ImageUpdateIn, Profile, AccountSignInOut
+     AccountSignInOut
 
 auth_controller = Router(tags=['Auth'])
 
@@ -89,22 +89,15 @@ def user_logout(request):
     return response(HTTPStatus.OK, {'message': 'Logged out and session deleted successfully'})
 
 
-@auth_controller.get('/profile', auth=AuthBearer(), response={200: Profile, 404: MessageOut})
+@auth_controller.get('/profile', auth=AuthBearer(), response={200: AccountOut, 400: MessageOut})
 def get_profile(request):
     try:
         authenticated_user = request.auth
         user = get_object_or_404(EmailAccount, id=authenticated_user.id)
 
-        return Profile(id=user.id, account=AccountOut(
-            id=user.id,
-            email=user.email,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            phone_number=user.phone_number,
-            image_url=user.image_url,
-        ))
+        return response(HTTPStatus.OK, user)
     except Exception:
-        return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing or user not found'})
+        return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
 
 
 @auth_controller.put('/profile',

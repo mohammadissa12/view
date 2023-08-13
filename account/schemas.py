@@ -64,9 +64,7 @@ class ChangePassword(Schema):
     new_password2: str
 
 
-class Profile(Schema):
-    id: UUID4
-    account: AccountOut
+
 
 
 class AppDetails(Schema):
