@@ -244,7 +244,7 @@ class Offers(Entity):
     is_active = models.BooleanField('مفعل', default=False)
 
     def __str__(self):
-        return f'{self.title} '
+        return f'{self.country} '
 
     class Meta:
         verbose_name = 'عرض'
