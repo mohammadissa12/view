@@ -109,8 +109,6 @@ class OfferSchema(Schema):
     id: UUID4
     country: CountryOut
     image: str
-    title: str
-    short_description: str
     url: str = None
     place: PlaceMixinOut = None
 
