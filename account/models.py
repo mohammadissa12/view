@@ -124,7 +124,7 @@ class EmailAccount(AbstractUser, Entity):
         if self.merchant_expiry_date:
             days_left = (self.merchant_expiry_date - today).days -1
             return max(days_left, 0)  # Ensure the result is non-negative
-        return 0
+        return False
 
     def has_perm(self, perm, obj=None):
         if self.is_superuser:
