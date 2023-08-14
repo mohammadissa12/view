@@ -398,12 +398,43 @@ def edit_merchant_place(request, place_data: PlaceUpdate,
         place.open = place_data.open
         place.phone_number = place_data.phone_number
 
-        for image in place_data.images:
-            image_content = image.read()  # Read the image content
-            # Save the image content to your data model (e.g., PlaceMixinImages model)
+
         place.save()
 
         return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
     except PlaceMixin.DoesNotExist:
         return 404, {'message': 'Place not found.'}
 
+
+@merchant_controller.post('/places/images', response={200: PlaceMixinOut, 404: MessageOut, 403: MessageOut}, auth=AuthBearer())
+def add_place_images_by_merchant(request, place_id: UUID4, images: List[UploadedFile] = File(...)):
+    try:
+        place = PlaceMixin.objects.get(id=place_id)
+    except PlaceMixin.DoesNotExist:
+        return 404, {'message': 'Place not found.'}
+
+    user = request.auth
+    if place.user != user:
+        return 403, {'message': 'You do not have permission to add images for this place.'}
+
+    for image in images:
+        place_image = Images(place=place, image=image)
+        place_image.save()
+
+    return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
+
+@merchant_controller.delete('/places/images/{image_id}', response={200: MessageOut, 404: MessageOut, 403: MessageOut}, auth=AuthBearer())
+def delete_place_image_by_merchant(request, image_id: UUID4):
+    try:
+        image = Images.objects.get(id=image_id)
+    except Images.DoesNotExist:
+        return 404, {'message': 'Image not found.'}
+
+    place = image.place
+    user = request.auth
+    if place.user != user:
+        return 403, {'message': 'You do not have permission to delete images for this place.'}
+
+    image.delete()
+
+    return response(status.HTTP_200_OK, {'message': 'Image deleted successfully.'})

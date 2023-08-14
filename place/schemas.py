@@ -191,4 +191,3 @@ class PlaceUpdate(Schema):
     instagram: str = None
     telegram: str = None
     whatsapp: str = None
-    images: List[UploadedFile] = []
