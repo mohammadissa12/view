@@ -13,7 +13,7 @@ class AccountOut(Schema):
     image_url: HttpUrl = None
     is_merchant: bool
     is_free: bool
-    days_to_expire: int = None
+    days_to_expire: str = None
 
 
 class AccountSignupIn(Schema):
@@ -33,7 +33,7 @@ class SignInOut(Schema):
     image_url: HttpUrl = None
     is_merchant: bool
     is_free: bool
-    days_to_expire: int = None
+    days_to_expire: str = None
 
 
 
