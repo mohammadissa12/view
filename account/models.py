@@ -118,6 +118,14 @@ class EmailAccount(AbstractUser, Entity):
             else None
         )
 
+    @property
+    def days_to_expire(self) -> int:
+        today = timezone.now().date()
+        if self.merchant_expiry_date:
+            days_left = (self.merchant_expiry_date - today).days -1
+            return max(days_left, 0)  # Ensure the result is non-negative
+        return 0
+
     def has_perm(self, perm, obj=None):
         if self.is_superuser:
             return True
@@ -141,6 +149,7 @@ class EmailAccount(AbstractUser, Entity):
             return True
 
         return super().has_module_perms(app_label)
+
 
 
 class AppDetails(Entity):

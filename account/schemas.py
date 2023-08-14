@@ -11,8 +11,18 @@ class AccountOut(Schema):
     last_name: str
     phone_number: int
     image_url: HttpUrl = None
+
+
+class Profile(Schema):
+    id: UUID4
+    email: EmailStr = None
+    first_name: str
+    last_name: str
+    phone_number: int
+    image_url: HttpUrl = None
     is_merchant: bool
     is_free: bool
+    days_to_expire: int = None
 
 
 class AccountSignupIn(Schema):
@@ -32,15 +42,18 @@ class SignInOut(Schema):
     image_url: HttpUrl = None
     is_merchant: bool
     is_free: bool
+    days_to_expire: int = None
 
 
 class AccountSignupOut(Schema):
     profile: AccountOut
     token: Token
 
+
 class AccountSignInOut(Schema):
     profile: SignInOut
     token: Token
+
 
 class AccountLoginIn(Schema):
     phone_number: int
@@ -64,13 +77,7 @@ class ChangePassword(Schema):
     new_password2: str
 
 
-
-
-
 class AppDetails(Schema):
     app_version: str = None
 
 
-class MerchantOut(Schema):
-    id: UUID4
-    account: AccountOut

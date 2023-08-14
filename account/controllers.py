@@ -14,7 +14,7 @@ from conf.utils.permissions import AuthBearer, create_token
 from conf.utils.utils import response
 from .models import EmailAccount
 from .schemas import AccountSignupOut, AccountSignupIn, AccountLoginIn, ChangePassword, AccountOut, AccountUpdateIn, \
-     AccountSignInOut
+    AccountSignInOut, Profile
 
 auth_controller = Router(tags=['Auth'])
 
@@ -89,7 +89,7 @@ def user_logout(request):
     return response(HTTPStatus.OK, {'message': 'Logged out and session deleted successfully'})
 
 
-@auth_controller.get('/profile', auth=AuthBearer(), response={200: AccountOut, 400: MessageOut})
+@auth_controller.get('/profile', auth=AuthBearer(), response={200: Profile, 400: MessageOut})
 def get_profile(request):
     try:
         authenticated_user = request.auth

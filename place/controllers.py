@@ -438,3 +438,5 @@ def delete_place_image_by_merchant(request, image_id: UUID4):
     image.delete()
 
     return response(status.HTTP_200_OK, {'message': 'Image deleted successfully.'})
+
+
