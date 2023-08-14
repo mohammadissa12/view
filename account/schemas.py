@@ -11,15 +11,6 @@ class AccountOut(Schema):
     last_name: str
     phone_number: int
     image_url: HttpUrl = None
-
-
-class Profile(Schema):
-    id: UUID4
-    email: EmailStr = None
-    first_name: str
-    last_name: str
-    phone_number: int
-    image_url: HttpUrl = None
     is_merchant: bool
     is_free: bool
     days_to_expire: int = None
