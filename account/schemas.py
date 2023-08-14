@@ -40,6 +40,8 @@ class SignInOut(Schema):
     last_name: str
     phone_number: int
     image_url: HttpUrl = None
+    is_merchant: bool
+    is_free: bool
 
 
 
