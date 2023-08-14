@@ -33,6 +33,7 @@ class SignInOut(Schema):
     image_url: HttpUrl = None
     is_merchant: bool
     is_free: bool
+    days_to_expire: int = None
 
 
 
