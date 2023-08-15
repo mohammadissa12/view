@@ -1,5 +1,6 @@
 import contextlib
 from django.contrib.auth import authenticate
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from ninja import Router, File
 from http import HTTPStatus
@@ -100,10 +101,12 @@ def get_profile(request):
         return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
 
 
+
+
 @auth_controller.put('/profile',
                      auth=AuthBearer(),
                      response={200: AccountOut, 400: MessageOut})
-def update_profile(request, user_in: AccountUpdateIn, ):
+def update_profile(request, user_in: AccountUpdateIn):
     try:
         user = get_object_or_404(EmailAccount, id=request.auth.id)
     except Exception:
@@ -114,28 +117,21 @@ def update_profile(request, user_in: AccountUpdateIn, ):
     if user_in.last_name:
         user.last_name = user_in.last_name
 
-    user.save()
-
-    return response(HTTPStatus.OK, user)
-
-
-@auth_controller.put('/profile/email_and_phone',
-                     auth=AuthBearer(),
-                     response={200: AccountOut, 400: MessageOut})
-def update_email_phone(request, user_in: AccountUpdateIn, ):
-    try:
-        user = get_object_or_404(EmailAccount, id=request.auth.id)
-    except Exception:
-        return response(HTTPStatus.BAD_REQUEST, {'message': 'token missing'})
-
     if user_in.phone_number:
+        # Check if the provided phone number already exists in the database
+        if EmailAccount.objects.filter(phone_number=user_in.phone_number).exclude(id=user.id).exists():
+            return response(HTTPStatus.BAD_REQUEST, {'message': 'Phone number already exists.'})
         user.phone_number = user_in.phone_number
+
     if user_in.email:
+        # Check if the provided email already exists in the database
+        if EmailAccount.objects.filter(email=user_in.email).exclude(id=user.id).exists():
+            return response(HTTPStatus.BAD_REQUEST, {'message': 'Email already exists.'})
         user.email = user_in.email
 
     user.save()
 
-    return response(HTTPStatus.OK, user)
+    return response(HTTPStatus.OK, AccountOut.from_orm(user))
 
 
 ALLOWED_IMAGE_FORMATS = ['PNG', 'JPEG', 'JPG', 'HEIC']
