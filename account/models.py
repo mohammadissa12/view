@@ -119,11 +119,10 @@ class EmailAccount(AbstractUser, Entity):
         )
 
     @property
-    def days_to_expire(self) :
-        today = timezone.now().date()
-        if self.merchant_expiry_date:
-            days_left = (self.merchant_expiry_date - today).days -1
-            return max(days_left, 0)  # Ensure the result is non-negative
+    def days_to_expire(self):
+        if self.is_merchant or self.merchant_expiry_date:
+            remaining_days = self.merchant_expiry_date - timezone.now().date()
+            return f"{remaining_days.days} days"
         return None
 
     def has_perm(self, perm, obj=None):

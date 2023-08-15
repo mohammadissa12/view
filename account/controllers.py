@@ -118,13 +118,11 @@ def update_profile(request, user_in: AccountUpdateIn):
         user.last_name = user_in.last_name
 
     if user_in.phone_number:
-        # Check if the provided phone number already exists in the database
         if EmailAccount.objects.filter(phone_number=user_in.phone_number).exclude(id=user.id).exists():
             return response(HTTPStatus.BAD_REQUEST, {'message': 'Phone number already exists.'})
         user.phone_number = user_in.phone_number
 
     if user_in.email:
-        # Check if the provided email already exists in the database
         if EmailAccount.objects.filter(email=user_in.email).exclude(id=user.id).exists():
             return response(HTTPStatus.BAD_REQUEST, {'message': 'Email already exists.'})
         user.email = user_in.email
