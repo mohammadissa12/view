@@ -1,17 +1,13 @@
 from datetime import date
 from django.contrib.auth import get_user_model
 from math import radians, cos, sin, asin, sqrt
-
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models import F
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from PIL import Image
 from django.db import models
 from location_field.models.plain import PlainLocationField
 from django.contrib.contenttypes.models import ContentType
-from django.utils.translation import gettext_lazy as _
 from account.models import EmailAccount
 from conf.utils.models import Entity
 
@@ -114,17 +110,39 @@ class PlaceMixin(Entity):
     def get_place_sub_type(self):
         return self.type.name if self.type else None
 
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)
-    #
-    #     if self.user.is_merchant_expired():
-    #         print("Merchant is expired. Archiving the place.")
-    #         # Merchant is expired, archive the place
-    #         self.is_archived = True
-    #         self.save(update_fields=['is_archived'])
-    #     else:
-    #         print("Merchant is not expired. Place remains active.")
+    def haversine_distance(self, lat2, lon2):
+        """
+        Calculate the Haversine distance between this place's location and another location.
+        """
+        lat1, lon1 = self.latitude, self.longitude
 
+        # Radius of the Earth in kilometers
+        R = 6371.0
+
+        lat1_rad = radians(lat1)
+        lon1_rad = radians(lon1)
+        lat2_rad = radians(lat2)
+        lon2_rad = radians(lon2)
+
+        dlon = lon2_rad - lon1_rad
+        dlat = lat2_rad - lat1_rad
+
+        a = sin(dlat / 2) ** 2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2) ** 2
+        c = 2 * asin(sqrt(a))
+
+        distance = R * c
+        return distance
+
+    def get_nearest_places(self, max_results=5):
+        all_places = PlaceMixin.objects.exclude(id=self.id)  # Exclude the current place
+
+        nearest_places = []
+        for place in all_places:
+            distance = self.haversine_distance(place.latitude, place.longitude)
+            nearest_places.append((place, distance))
+
+        nearest_places.sort(key=lambda x: x[1])
+        return [place for place, _ in nearest_places[:max_results]]
 
 class SocialMedia(Entity):
     place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True,

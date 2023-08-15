@@ -73,6 +73,23 @@ def get_places_user_reviewed(request):
     else:
         return 404, {'message': 'No reviewed places found for the user.'}
 
+@place_controller.get('/places/{place_id}/nearest/', response={
+    200: List[PlaceMixinOut],
+    404: MessageOut  # You might need to import the MessageOut schema if not already imported
+})
+def get_nearest_places(request, place_id: UUID4):
+    try:
+        specific_place = PlaceMixin.objects.get(id=place_id)
+    except PlaceMixin.DoesNotExist:
+        return 404, {'message': 'Place not found.'}
+
+    # Get the list of nearest places
+    nearest_places = specific_place.get_nearest_places()
+
+    # Convert the nearest places to the PlaceMixinOut schema
+    nearest_places_output = [PlaceMixinOut.from_orm(place) for place in nearest_places]
+
+    return response(status.HTTP_200_OK, nearest_places_output)
 
 favorite_places_controller = Router(tags=['favorite places'])
 
