@@ -3,7 +3,7 @@ from location.models import Country
 from .models import (
     Images,
     Reviews,
-    SocialMedia, Advertisement, RecommendedPlaces, LatestPlaces, PlaceMixin, FavoritePlaces, Offers, Company, Trip,
+    SocialMedia, Advertisement, RecommendedPlaces, LatestPlaces, PlaceMixin, FavoritePlaces, Offers, Company,
     TripDetails, TripSocialMedia, TripImages, PlaceType, PlaceSubType,
 )
 
@@ -71,11 +71,6 @@ class CompanyAdmin(admin.ModelAdmin):
     list_filter = ['country', 'city']
 
 
-@admin.register(Trip)
-class TripAdmin(admin.ModelAdmin):
-    list_display = ['trip_name', 'company', 'short_description']
-    search_fields = ['name', 'company__company_name']
-    list_filter = ['company']
 
 
 class SocialMediaTripInline(admin.TabularInline):
@@ -92,9 +87,9 @@ class ImageTripInline(admin.TabularInline):
 
 class TripDetailsModelAdmin(admin.ModelAdmin):
     inlines = [ImageTripInline, SocialMediaTripInline]
-    list_display = ['trip', 'trip_name', 'trip_details', 'location']
+    list_display = [ 'trip_name', 'trip_details', 'location']
     search_fields = ['trip__trip_name', 'trip__company__company_name']
-    list_filter = ['trip__company__company_name']
+    list_filter = []
 
 
 admin.site.register(TripDetails, TripDetailsModelAdmin)

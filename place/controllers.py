@@ -254,18 +254,22 @@ trip_controller = Router(tags=['Trips'])
 def get_trips_by_company(request, company_id: UUID4):
     try:
         company = Company.objects.get(id=company_id)
-        trips = Trip.objects.filter(company_id=company_id)
+        trips = TripDetails.objects.filter(company_id=company_id)
 
         if not trips.exists():
             return 404, {'message': 'No trips found for the specified company.'}
 
-        trip_out_list = [TripOut.from_orm(trip) for trip in trips]
         trip_detail_out_list = []
-
         for trip in trips:
-            trip_details = TripDetails.objects.filter(trip_id=trip.id)
-            if trip_details.exists():
-                trip_detail_out_list.extend([TripDetailOut.from_orm(detail) for detail in trip_details])
+            trip_detail_out = TripDetailOut(
+                id=trip.id,
+                trip_name=trip.trip_name,
+                short_description=trip.short_description,
+                trip_details=trip.trip_details,
+                location=trip.location,
+                trip_images=[PlaceImageOut.from_orm(image) for image in trip.trip_images],
+            )
+            trip_detail_out_list.append(trip_detail_out)
 
         company_out = CompanyOut(
             id=company.id,
@@ -277,7 +281,6 @@ def get_trips_by_company(request, company_id: UUID4):
 
         company_with_trips_out = CompanyWithTripsOut(
             company=company_out,
-            trips=trip_out_list,
             trip_details=trip_detail_out_list
         )
 

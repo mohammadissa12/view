@@ -19,7 +19,7 @@ class SocialMediaSchema(Schema):
 class PlaceImageOut(Schema):
     id: UUID4
     image: str
-    image_url: HttpUrl
+    image_url: HttpUrl = None
 
 
 class PlaceMixinOut(Schema):
@@ -143,15 +143,12 @@ class CompanyOut(Schema):
     image: str  # Ensure that the field type is set to str
     company_description: str
 
-class TripOut(Schema):
-    id: UUID4
-    trip_name: str
-    short_description: str
 
 
 class TripDetailOut(Schema):
-    trip: TripOut
+    id: UUID4
     trip_name: str
+    short_description: str
     trip_details: str
     social_media: SocialMediaSchema = None
     trip_images: List[PlaceImageOut] = None
@@ -159,7 +156,6 @@ class TripDetailOut(Schema):
 
 class CompanyWithTripsOut(Schema):
     company: CompanyOut
-    trips: List[TripOut]
     trip_details: List[TripDetailOut]
 
 

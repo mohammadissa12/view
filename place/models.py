@@ -345,25 +345,9 @@ class Company(Entity):
 
 
 
-class Trip(Entity):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='trip')
-    trip_name = models.CharField('اسم الرحلة', max_length=50)
-    short_description = models.CharField('الوصف المختصر', max_length=100)
-
-    def __str__(self):
-        return f'{self.company.company_name}{self.trip_name}'
-
-    class Meta:
-        verbose_name = 'رحلة'
-        verbose_name_plural = 'الرحلات'
-
-    @property
-    def company_description(self):
-        return self.company.company_description
-
-
 class TripDetails(Entity):
-    trip = models.OneToOneField(Trip, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_details')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='trip_details')
+    short_description = models.CharField('الوصف المختصر', max_length=100)
     trip_name = models.CharField('اسم الرحلة', max_length=50)
     trip_details = models.TextField('تفاصيل الرحلة', max_length=256)
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661',
@@ -395,6 +379,9 @@ class TripDetails(Entity):
         except TripSocialMedia.DoesNotExist:
             return None
 
+    @property
+    def company_description(self):
+        return self.company.company_description
 
 class TripImages(Entity):
     trip = models.ForeignKey(TripDetails, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_image')
@@ -408,7 +395,7 @@ class TripImages(Entity):
         verbose_name_plural = 'صور الرحلات'
 
     @property
-    def trip_image_url(self):
+    def image_url(self):
         domain = "https://moamel.pythonanywhere.com"  # Replace this with your actual domain
         return f"{domain}{self.image.url}"
 
