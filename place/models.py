@@ -111,9 +111,6 @@ class PlaceMixin(Entity):
         return self.type.name if self.type else None
 
     def haversine_distance(self, lat2, lon2):
-        """
-        Calculate the Haversine distance between this place's location and another location.
-        """
         lat1, lon1 = self.latitude, self.longitude
 
         # Radius of the Earth in kilometers
@@ -133,13 +130,14 @@ class PlaceMixin(Entity):
         distance = R * c
         return distance
 
-    def get_nearest_places(self, max_results=5):
+    def get_nearest_places(self, max_distance_km=3, max_results=5):
         all_places = PlaceMixin.objects.exclude(id=self.id)  # Exclude the current place
 
         nearest_places = []
         for place in all_places:
             distance = self.haversine_distance(place.latitude, place.longitude)
-            nearest_places.append((place, distance))
+            if distance <= max_distance_km:
+                nearest_places.append((place, distance))
 
         nearest_places.sort(key=lambda x: x[1])
         return [place for place, _ in nearest_places[:max_results]]
@@ -228,7 +226,7 @@ class Advertisement(Entity):
 
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان',
                               related_name='advertisements', blank=True, null=True)
-    image = models.ImageField('الصورة', upload_to='advertisements')
+    image = models.ImageField('الصورة', upload_to='images')
     title = models.CharField('العنوان', max_length=50)
     short_description = models.CharField('الوصف المختصر', max_length=100)
     url = models.URLField('الرابط', max_length=100, blank=True, null=True)
@@ -255,7 +253,7 @@ class Offers(Entity):
                                 related_name='offers')
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان', related_name='offers',
                               blank=True, null=True)
-    image = models.ImageField('الصورة', upload_to='offers')
+    image = models.ImageField('الصورة', upload_to='images')
     url = models.URLField('الرابط', max_length=100, blank=True, null=True)
     start_date = models.DateField('تاريخ البداية')
     end_date = models.DateField('تاريخ النهاية', )
@@ -329,7 +327,7 @@ class Company(Entity):
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, verbose_name='المدينة', related_name='company',
                              blank=True, null=True)
     company_name = models.CharField('اسم الشركة', max_length=50)
-    image = models.ImageField('الصورة', upload_to='company')
+    image = models.ImageField('الصورة', upload_to='images')
     company_description = models.CharField('وصف الشركة', max_length=100)
 
     def __str__(self):
@@ -347,7 +345,7 @@ class Company(Entity):
 
 class TripDetails(Entity):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='trip_details')
-    short_description = models.CharField('الوصف المختصر', max_length=100)
+    short_description = models.CharField('الوصف المختصر', max_length=100,null= True, blank=True)
     trip_name = models.CharField('اسم الرحلة', max_length=50)
     trip_details = models.TextField('تفاصيل الرحلة', max_length=256)
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661',
@@ -385,7 +383,7 @@ class TripDetails(Entity):
 
 class TripImages(Entity):
     trip = models.ForeignKey(TripDetails, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_image')
-    image = models.ImageField('الصورة', upload_to='trip_images')
+    image = models.ImageField('الصورة', upload_to='images')
 
     def __str__(self):
         return f'{self.trip.trip_name}'
