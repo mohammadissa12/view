@@ -277,6 +277,7 @@ def get_trips_by_company(request, company_id: UUID4):
             company_name=company.company_name,
             image=str(company.image),  # Ensure that the image is converted to str
             company_description=company.company_description,
+
         )
 
         company_with_trips_out = CompanyWithTripsOut(
@@ -302,15 +303,10 @@ def get_companies_by_city_name(request, city_name: str):
         if not companies.exists():
             return 404, {'message': 'No companies found for the specified city.'}
 
-        company_out_list = [CompanyOut(
-            id=company.id,
-            city=CityOut.from_orm(company.city),
-            company_name=company.company_name,
-            image=str(company.image),
-            company_description=company.company_description,
-        ) for company in companies]
 
-        return response(status.HTTP_200_OK, company_out_list)
+        companies_out = [CompanyOut.from_orm(company) for company in companies]
+
+        return response(status.HTTP_200_OK,companies_out)
     except City.DoesNotExist:
         return 404, {'message': 'City not found.'}
 

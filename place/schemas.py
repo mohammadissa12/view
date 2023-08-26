@@ -5,7 +5,7 @@ from pydantic import HttpUrl
 from ninja import UploadedFile
 from account.schemas import AccountOut
 from location.schemas import CityOut, CountryOut
-from place.models import PlaceMixin
+from place.models import PlaceMixin, Company
 
 
 class SocialMediaSchema(Schema):
@@ -140,17 +140,31 @@ class CompanyOut(Schema):
     id: UUID4
     city: CityOut
     company_name: str
-    image: str  # Ensure that the field type is set to str
+    image: str = None
     company_description: str
+    longitude: float
+    latitude: float
+    social_media: SocialMediaSchema = None
 
-
+    @staticmethod
+    def from_orm(company: Company):
+        is_available = company.get_social_media
+        return CompanyOut(
+            id=company.id,
+            city=CityOut.from_orm(company.city),
+            company_name=company.company_name,
+            image=company.image_url,
+            company_description=company.company_description,
+            longitude=company.longitude,
+            latitude=company.latitude,
+            social_media=is_available,
+        )
 
 class TripDetailOut(Schema):
     id: UUID4
     trip_name: str
     short_description: str
     trip_details: str
-    social_media: SocialMediaSchema = None
     trip_images: List[PlaceImageOut] = None
 
 
