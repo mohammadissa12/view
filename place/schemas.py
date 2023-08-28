@@ -145,6 +145,8 @@ class CompanyOut(Schema):
     longitude: float
     latitude: float
     social_media: SocialMediaSchema = None
+    average_rating: Optional[float]
+    review_count: Optional[int]
 
     @staticmethod
     def from_orm(company: Company):
@@ -158,6 +160,8 @@ class CompanyOut(Schema):
             longitude=company.longitude,
             latitude=company.latitude,
             social_media=is_available,
+            average_rating=company.average_rating,
+            review_count=company.review_count,
         )
 
 class TripDetailOut(Schema):
@@ -172,6 +176,12 @@ class CompanyWithTripsOut(Schema):
     company: CompanyOut
     trip_details: List[TripDetailOut]
 
+class ReviewsCompanySchema(Schema):
+    id: UUID4
+    user: AccountOut
+    company_id: UUID4
+    comment: Optional[str]
+    rating: int
 
 class PlaceCreate(Schema):
     user_id: UUID4
@@ -201,3 +211,4 @@ class PlaceUpdate(Schema):
     instagram: str = None
     telegram: str = None
     whatsapp: str = None
+

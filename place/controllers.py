@@ -310,6 +310,49 @@ def get_companies_by_city_name(request, city_name: str):
     except City.DoesNotExist:
         return 404, {'message': 'City not found.'}
 
+@trip_controller.get('/reviews/{company_id}', response={
+    200: List[ReviewsCompanySchema],
+    404: MessageOut
+})
+def get_reviews_by_company(request, company_id: UUID4, user_id: UUID4):
+    try:
+        reviews = ReviewsCompany.objects.filter(company_id=company_id)
+
+        if not reviews.exists():
+            return 404, {'message': 'No reviews found for the specified company.'}
+
+        if user_review := reviews.filter(user_id=user_id).first():
+            reviews = [user_review] + [review for review in reviews if review != user_review]
+        else:
+            reviews = reviews.order_by('-created')
+
+        return reviews
+
+    except Reviews.DoesNotExist:
+        return 404, {'message': 'Company not found.'}
+
+
+
+@trip_controller.post('/',response={200: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
+def create_review_company(request, review_data: ReviewsIn, company_id: UUID4):
+    user = request.auth
+
+    try:
+        company = Company.objects.get(id=company_id)
+    except Company.DoesNotExist:
+        return 404, {'message': 'Company not found.'}
+
+    '''if user have a comment in this company'''
+    if ReviewsCompany.objects.filter(user=user, company=company).exists():
+        return 404, {'message': 'You have already reviewed this company.'}
+    review = ReviewsCompany.objects.create(
+        user=user,
+        company=company,
+        comment=review_data.comment,
+        rating=review_data.rating
+    )
+    return response(status.HTTP_200_OK, review)
+
 
 merchant_controller = Router(tags=['Merchants'])
 

@@ -202,7 +202,7 @@ class Images(Entity):
 
 
 class Reviews(Entity):
-    user = models.ForeignKey('account.EmailAccount', on_delete=models.CASCADE)
+    user = models.OneToOneField('account.EmailAccount', on_delete=models.CASCADE)
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE)
     comment = models.TextField('التعليق', null=True, blank=True,)
     rating = models.PositiveSmallIntegerField('التقييم', default=1,
@@ -363,6 +363,26 @@ class Company(Entity):
         domain = "https://moamel.pythonanywhere.com"
         return f"{domain}{self.image.url}"
 
+
+    def get_average_rating_company(self) -> float:
+        return ReviewsCompany.objects.filter(company=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
+
+    def get_review_count_company(self) -> int:
+        return ReviewsCompany.objects.filter(company=self).count()
+
+    @property
+    def average_rating(self):
+        return self.get_review_count_company()
+
+    @property
+    def review_count(self):
+        return self.get_average_rating_company()
+
+    @property
+    def reviews(self):
+        return self.reviews.all()
+
+
 class TripDetails(Entity):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='trip_details')
     short_description = models.CharField('الوصف المختصر', max_length=100,null= True, blank=True)
@@ -449,3 +469,20 @@ class CompanySocialMedia(Entity):
         if self.whatsapp:
             available_apps.append(self.SOCIAL_MEDIA_APPS['whatsapp'])
         return available_apps
+
+
+class ReviewsCompany(Entity):
+    user = models.OneToOneField('account.EmailAccount', on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='reviews')
+    comment = models.TextField('التعليق', null=True, blank=True,)
+    rating = models.PositiveSmallIntegerField('التقييم', default=1,
+                                              validators=[MinValueValidator(1), MaxValueValidator(5)])
+    reported = models.BooleanField('تم الابلاغ', default=False)  # New field for reporting
+
+    def __str__(self):
+        return f'{self.user} - {self.company}'
+
+    class Meta:
+        verbose_name = 'تعليق'
+        verbose_name_plural = 'تعليقات'
+
