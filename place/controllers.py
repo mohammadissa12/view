@@ -354,6 +354,40 @@ def create_review_company(request, review_data: ReviewsIn, company_id: UUID4):
     return response(status.HTTP_200_OK, review)
 
 
+@trip_controller.delete('/remove', response={200: MessageOut, 404: MessageOut}, auth=AuthBearer())
+def delete_review_company(request, review_id: UUID4):
+    user = request.auth
+
+    try:
+        review = ReviewsCompany.objects.get(id=review_id)
+    except ReviewsCompany.DoesNotExist:
+        return 404, {'message': 'Review not found.'}
+
+    if review.user != user:
+        return 403, {'message': 'You are not allowed to delete this review.'}
+
+    review.delete()
+    return response(status.HTTP_200_OK, {'message': 'Review deleted successfully.'})
+
+
+@trip_controller.post(('/comments/{comment_id}/report'), response={200: MessageOut, 404: MessageOut},
+                        auth=AuthBearer())
+def report_comment_company(request, comment_id: UUID4):
+    user = request.auth
+
+    try:
+        comment = ReviewsCompany.objects.get(id=comment_id)
+    except ReviewsCompany.DoesNotExist:
+        return 404, {'message': 'Comment not found.'}
+
+    if comment.user == user:
+        return 403, {'message': 'You are not allowed to report your own comment.'}
+
+    comment.reported = True
+    comment.save()
+    return response(status.HTTP_200_OK, {'message': 'Comment reported successfully.'})
+
+
 merchant_controller = Router(tags=['Merchants'])
 
 
