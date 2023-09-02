@@ -266,7 +266,6 @@ def get_trips_by_company(request, company_id: UUID4):
                 trip_name=trip.trip_name,
                 short_description=trip.short_description,
                 trip_details=trip.trip_details,
-                location=trip.location,
                 trip_images=[PlaceImageOut.from_orm(image) for image in trip.trip_images],
             )
             trip_detail_out_list.append(trip_detail_out)
@@ -276,6 +275,8 @@ def get_trips_by_company(request, company_id: UUID4):
             city=CityOut.from_orm(company.city),
             company_name=company.company_name,
             image=str(company.image),  # Ensure that the image is converted to str
+            latitude=company.latitude,
+            longitude=company.longitude,
             company_description=company.company_description,
 
         )
@@ -533,3 +534,19 @@ def delete_place_image_by_merchant(request, image_id: UUID4):
     return response(status.HTTP_200_OK, {'message': 'Image deleted successfully.'})
 
 
+
+#get images merchant place
+@merchant_controller.get('/merchant/place/images', response={200: List[PlaceImageOut], 404: MessageOut}, auth=AuthBearer())
+def get_merchant_place_images(request):
+    user = request.auth
+    try:
+        user = EmailAccount.objects.get(id=user.id)
+    except EmailAccount.DoesNotExist:
+        return 404, {'message': 'Account not found.'}
+    if not user.is_merchant :
+        return 404, {'message': 'Merchant not found.'}
+    try:
+        place = PlaceMixin.objects.get(user=user)
+        return response(status.HTTP_200_OK, [PlaceImageOut.from_orm(image) for image in place.place_images])
+    except PlaceMixin.DoesNotExist:
+        return 404, {'message': 'Place not found.'}

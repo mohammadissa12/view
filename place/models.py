@@ -202,7 +202,7 @@ class Images(Entity):
 
 
 class Reviews(Entity):
-    user = models.OneToOneField('account.EmailAccount', on_delete=models.CASCADE)
+    user = models.ForeignKey('account.EmailAccount', on_delete=models.CASCADE)
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE)
     comment = models.TextField('التعليق', null=True, blank=True,)
     rating = models.PositiveSmallIntegerField('التقييم', default=1,
