@@ -144,7 +144,7 @@ class CompanyOut(Schema):
     company_description: str
     longitude: float
     latitude: float
-    social_media: SocialMediaSchema = None
+    social_media: Optional[SocialMediaSchema]
     average_rating: Optional[float]
     review_count: Optional[int]
 
@@ -176,12 +176,6 @@ class CompanyWithTripsOut(Schema):
     company: CompanyOut
     trip_details: List[TripDetailOut]
 
-class ReviewsCompanySchema(Schema):
-    id: UUID4
-    user: AccountOut
-    company_id: UUID4
-    comment: Optional[str]
-    rating: int
 
 class PlaceCreate(Schema):
     user_id: UUID4

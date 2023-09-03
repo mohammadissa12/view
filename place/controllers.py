@@ -278,7 +278,7 @@ def get_trips_by_company(request, company_id: UUID4):
             latitude=company.latitude,
             longitude=company.longitude,
             company_description=company.company_description,
-
+            social_media=company.get_social_media,
         )
 
         company_with_trips_out = CompanyWithTripsOut(
@@ -289,8 +289,6 @@ def get_trips_by_company(request, company_id: UUID4):
         return response(status.HTTP_200_OK, company_with_trips_out)
     except Company.DoesNotExist:
         return 404, {'message': 'Company not found.'}
-
-
 
 
 @trip_controller.get('/companies/{city_name}', response={
@@ -304,96 +302,17 @@ def get_companies_by_city_name(request, city_name: str):
         if not companies.exists():
             return 404, {'message': 'No companies found for the specified city.'}
 
+        return  response(status.HTTP_200_OK, [CompanyOut.from_orm(company) for company in companies])
 
-        companies_out = [CompanyOut.from_orm(company) for company in companies]
-
-        return response(status.HTTP_200_OK,companies_out)
-    except City.DoesNotExist:
-        return 404, {'message': 'City not found.'}
-
-@trip_controller.get('/reviews/{company_id}', response={
-    200: List[ReviewsCompanySchema],
-    404: MessageOut
-})
-def get_reviews_by_company(request, company_id: UUID4, user_id: UUID4):
-    try:
-        reviews = ReviewsCompany.objects.filter(company_id=company_id)
-
-        if not reviews.exists():
-            return 404, {'message': 'No reviews found for the specified company.'}
-
-        if user_review := reviews.filter(user_id=user_id).first():
-            reviews = [user_review] + [review for review in reviews if review != user_review]
-        else:
-            reviews = reviews.order_by('-created')
-
-        return reviews
-
-    except Reviews.DoesNotExist:
-        return 404, {'message': 'Company not found.'}
-
-
-
-@trip_controller.post('/',response={200: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
-def create_review_company(request, review_data: ReviewsIn, company_id: UUID4):
-    user = request.auth
-
-    try:
-        company = Company.objects.get(id=company_id)
     except Company.DoesNotExist:
         return 404, {'message': 'Company not found.'}
-
-    '''if user have a comment in this company'''
-    if ReviewsCompany.objects.filter(user=user, company=company).exists():
-        return 404, {'message': 'You have already reviewed this company.'}
-    review = ReviewsCompany.objects.create(
-        user=user,
-        company=company,
-        comment=review_data.comment,
-        rating=review_data.rating
-    )
-    return response(status.HTTP_200_OK, review)
-
-
-@trip_controller.delete('/remove', response={200: MessageOut, 404: MessageOut}, auth=AuthBearer())
-def delete_review_company(request, review_id: UUID4):
-    user = request.auth
-
-    try:
-        review = ReviewsCompany.objects.get(id=review_id)
-    except ReviewsCompany.DoesNotExist:
-        return 404, {'message': 'Review not found.'}
-
-    if review.user != user:
-        return 403, {'message': 'You are not allowed to delete this review.'}
-
-    review.delete()
-    return response(status.HTTP_200_OK, {'message': 'Review deleted successfully.'})
-
-
-@trip_controller.post(('/comments/{comment_id}/report'), response={200: MessageOut, 404: MessageOut},
-                        auth=AuthBearer())
-def report_comment_company(request, comment_id: UUID4):
-    user = request.auth
-
-    try:
-        comment = ReviewsCompany.objects.get(id=comment_id)
-    except ReviewsCompany.DoesNotExist:
-        return 404, {'message': 'Comment not found.'}
-
-    if comment.user == user:
-        return 403, {'message': 'You are not allowed to report your own comment.'}
-
-    comment.reported = True
-    comment.save()
-    return response(status.HTTP_200_OK, {'message': 'Comment reported successfully.'})
 
 
 merchant_controller = Router(tags=['Merchants'])
 
 
 @merchant_controller.post('/places', response={200: PlaceMixinOut, 404: MessageOut, 403: MessageOut}, auth=AuthBearer())
-def add_place_by_merchant(request, place_data: PlaceCreate, images: List[UploadedFile] = File(...)):
+def add_place_by_merchant(request, place_data: PlaceCreate):
     user = request.auth
     try:
         user = EmailAccount.objects.get(id=place_data.user_id)
@@ -432,10 +351,6 @@ def add_place_by_merchant(request, place_data: PlaceCreate, images: List[Uploade
         open=place_data.open,
         phone_number=place_data.phone_number,
     )
-
-    for image in images:
-        place_image = Images(place=place, image=image)
-        place_image.save()
 
     social_media = SocialMedia.objects.create(
         facebook=place_data.facebook,
@@ -517,6 +432,7 @@ def add_place_images_by_merchant(request, place_id: UUID4, images: List[Uploaded
 
     return response(status.HTTP_200_OK, PlaceMixinOut.from_orm(place))
 
+
 @merchant_controller.delete('/places/images/{image_id}', response={200: MessageOut, 404: MessageOut, 403: MessageOut}, auth=AuthBearer())
 def delete_place_image_by_merchant(request, image_id: UUID4):
     try:
@@ -534,8 +450,6 @@ def delete_place_image_by_merchant(request, image_id: UUID4):
     return response(status.HTTP_200_OK, {'message': 'Image deleted successfully.'})
 
 
-
-#get images merchant place
 @merchant_controller.get('/merchant/place/images', response={200: List[PlaceImageOut], 404: MessageOut}, auth=AuthBearer())
 def get_merchant_place_images(request):
     user = request.auth

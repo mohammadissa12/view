@@ -142,9 +142,12 @@ class PlaceMixin(Entity):
         nearest_places.sort(key=lambda x: x[1])
         return [place for place, _ in nearest_places[:max_results]]
 
+
 class SocialMedia(Entity):
     place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True,
                                  blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='social_media', null=True,
+                                blank=True)
     facebook = models.CharField('فيسبوك', null=True, blank=True, max_length=50)
     instagram = models.CharField('انستغرام', null=True, blank=True, max_length=50)
     telegram = models.CharField('تليجرام', null=True, blank=True, max_length=50)
@@ -203,8 +206,9 @@ class Images(Entity):
 
 class Reviews(Entity):
     user = models.ForeignKey('account.EmailAccount', on_delete=models.CASCADE)
-    place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE)
-    comment = models.TextField('التعليق', null=True, blank=True,)
+    place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE,null=True,blank=True)
+    company = models.ForeignKey('Company',on_delete=models.CASCADE,null=True,blank=True)
+    comment = models.TextField('التعليق', null=True, blank=True, )
     rating = models.PositiveSmallIntegerField('التقييم', default=1,
                                               validators=[MinValueValidator(1), MaxValueValidator(5)])
     reported = models.BooleanField('تم الابلاغ', default=False)  # New field for reporting
@@ -215,7 +219,6 @@ class Reviews(Entity):
     class Meta:
         verbose_name = 'تعليق'
         verbose_name_plural = 'تعليقات'
-
 
 
 class Advertisement(Entity):
@@ -235,7 +238,7 @@ class Advertisement(Entity):
     is_active = models.BooleanField('مفعل', default=False)
 
     def __str__(self):
-        return f'{self.title} '
+        return f'{self.title}'
 
     class Meta:
         verbose_name = 'اعلان'
@@ -354,8 +357,8 @@ class Company(Entity):
     @property
     def get_social_media(self):
         try:
-            return self.company_social_media
-        except CompanySocialMedia.DoesNotExist:
+            return self.social_media
+        except SocialMedia.DoesNotExist:
             return None
 
     @property
@@ -363,12 +366,11 @@ class Company(Entity):
         domain = "https://moamel.pythonanywhere.com"
         return f"{domain}{self.image.url}"
 
-
     def get_average_rating_company(self) -> float:
-        return ReviewsCompany.objects.filter(company=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
+        return Reviews.objects.filter(company=self).aggregate(models.Avg('rating'))['rating__avg'] or 0
 
     def get_review_count_company(self) -> int:
-        return ReviewsCompany.objects.filter(company=self).count()
+        return Reviews.objects.filter(company=self).count()
 
     @property
     def average_rating(self):
@@ -385,10 +387,9 @@ class Company(Entity):
 
 class TripDetails(Entity):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='trip_details')
-    short_description = models.CharField('الوصف المختصر', max_length=100,null= True, blank=True)
+    short_description = models.CharField('الوصف المختصر', max_length=100, null=True, blank=True)
     trip_name = models.CharField('اسم الرحلة', max_length=50)
     trip_details = models.TextField('تفاصيل الرحلة', max_length=256)
-
 
     def __str__(self):
         return f'{self.trip_name}'
@@ -397,17 +398,14 @@ class TripDetails(Entity):
         verbose_name = 'تفاصيل الرحلة'
         verbose_name_plural = 'تفاصيل الرحلات'
 
-
-
     @property
     def trip_images(self):
         return self.trip_image.all()
 
-
-
     @property
     def company_description(self):
         return self.company.company_description
+
 
 class TripImages(Entity):
     trip = models.ForeignKey(TripDetails, on_delete=models.CASCADE, verbose_name='الرحلة', related_name='trip_image')
@@ -433,56 +431,4 @@ class TripImages(Entity):
             output_size = (500, 500)
             img.thumbnail(output_size)
             img.save(self.image.path)
-
-
-class CompanySocialMedia(Entity):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة ',
-                             related_name='company_social_media', null=True, blank=True)
-    facebook = models.CharField('فيسبوك', null=True, blank=True, max_length=50)
-    instagram = models.CharField('انستغرام', null=True, blank=True, max_length=50)
-    telegram = models.CharField('تليجرام', null=True, blank=True, max_length=50)
-    whatsapp = models.CharField('واتساب', null=True, blank=True, max_length=50)
-
-    def __str__(self):
-        return f'{self.company.company_name}'
-
-    class Meta:
-        verbose_name = 'وسائل التواصل الاجتماعي'
-        verbose_name_plural = 'وسائل التواصل الاجتماعي'
-
-    SOCIAL_MEDIA_APPS = {
-        'facebook': 'facebook',
-        'instagram': 'instagram',
-        'telegram': 'telegram',
-        'whatsapp': 'whatsapp',
-    }
-
-    @property
-    def is_available(self):
-        available_apps = []
-        if self.facebook:
-            available_apps.append(self.SOCIAL_MEDIA_APPS['facebook'])
-        if self.instagram:
-            available_apps.append(self.SOCIAL_MEDIA_APPS['instagram'])
-        if self.telegram:
-            available_apps.append(self.SOCIAL_MEDIA_APPS['telegram'])
-        if self.whatsapp:
-            available_apps.append(self.SOCIAL_MEDIA_APPS['whatsapp'])
-        return available_apps
-
-
-class ReviewsCompany(Entity):
-    user = models.OneToOneField('account.EmailAccount', on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='reviews')
-    comment = models.TextField('التعليق', null=True, blank=True,)
-    rating = models.PositiveSmallIntegerField('التقييم', default=1,
-                                              validators=[MinValueValidator(1), MaxValueValidator(5)])
-    reported = models.BooleanField('تم الابلاغ', default=False)  # New field for reporting
-
-    def __str__(self):
-        return f'{self.user} - {self.company}'
-
-    class Meta:
-        verbose_name = 'تعليق'
-        verbose_name_plural = 'تعليقات'
 

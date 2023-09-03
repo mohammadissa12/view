@@ -4,7 +4,7 @@ from .models import (
     Images,
     Reviews,
     SocialMedia, Advertisement, RecommendedPlaces, LatestPlaces, PlaceMixin, FavoritePlaces, Offers, Company,
-    TripDetails, CompanySocialMedia, TripImages, PlaceType, PlaceSubType, ReviewsCompany,
+    TripDetails, TripImages, PlaceType, PlaceSubType,
 )
 
 
@@ -25,8 +25,6 @@ class ReviewsInline(PlaceMixinInline):
     model = Reviews
 
 
-class ReviewCompanyInline(PlaceMixinInline):
-    model = ReviewsCompany
 
 
 class BaseModelAdmin(admin.ModelAdmin):
@@ -68,15 +66,12 @@ admin.site.register(FavoritePlaces)
 admin.site.register(Offers)
 
 
-class SocialMediaTripInline(admin.TabularInline):
-    model = CompanySocialMedia
-    extra = 1
-    inlines = []
+
 
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    inlines = [SocialMediaTripInline, ReviewCompanyInline]
+    inlines = [SocialMediaInline, ReviewsInline]
     list_display = ['company_name', 'country', 'city', 'company_description']
     search_fields = ['name', 'country__country_name', 'city__city_name']
     list_filter = ['country', 'city']
