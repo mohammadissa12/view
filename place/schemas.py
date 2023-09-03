@@ -93,6 +93,8 @@ class ReviewsSchema(Schema):
 class ReviewsIn(Schema):
     comment: Optional[str]
     rating: int
+    entity_id: UUID4
+    entity_type: str
 
 
 class AdvertisementSchema(Schema):

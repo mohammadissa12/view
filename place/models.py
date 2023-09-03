@@ -212,7 +212,12 @@ class Reviews(Entity):
     rating = models.PositiveSmallIntegerField('التقييم', default=1,
                                               validators=[MinValueValidator(1), MaxValueValidator(5)])
     reported = models.BooleanField('تم الابلاغ', default=False)  # New field for reporting
+    ENTITY_CHOICES = (
+        ('place', 'Place'),
+        ('company', 'Company'),
+    )
 
+    entity_type = models.CharField('Entity Type', choices=ENTITY_CHOICES, max_length=10)
     def __str__(self):
         return f'{self.user} - {self.place}'
 

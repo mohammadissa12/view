@@ -278,7 +278,7 @@ def get_trips_by_company(request, company_id: UUID4):
             latitude=company.latitude,
             longitude=company.longitude,
             company_description=company.company_description,
-            social_media=company.get_social_media,
+            social_media=company.social_media,
         )
 
         company_with_trips_out = CompanyWithTripsOut(
