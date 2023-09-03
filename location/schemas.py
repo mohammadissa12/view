@@ -37,3 +37,8 @@ class CitySchema(Schema):
     current_page: int = None
     page_count: int = None
     data: List[CityOut]
+
+
+class City2(Schema):
+    id: UUID4
+    city_name: str

@@ -54,19 +54,15 @@ def get_city(request, city_id: UUID4):
 
 
 @country_controller.get('/cites/{country_id}', response={
-    200: CitySchema,
+    200: List[City2],
     404: MessageOut
 })
-def get_cities_by_country(request, country_id: UUID4, search=None, per_page: int = 12, page: int = 1):
+def get_cities_by_country(request, country_name: str):
     try:
-        country = Country.objects.get(id=country_id)
-        if search:
-            cities = City.objects.filter(
-                Q(city_name__icontains=search) and Q(country=country))
-        else:
-            cities = City.objects.filter(country=country)
+        country = Country.objects.get(country_name__iexact=country_name)
+        cities = City.objects.filter(country=country)
         if cities:
-            return response(status.HTTP_200_OK, cities, paginated=True, per_page=per_page, page=page)
+            return response(status.HTTP_200_OK, cities,)
         return 404, {'message': 'No cities found.'}
     except Country.DoesNotExist:
         return 404, {'message': 'Country not found.'}
@@ -92,3 +88,5 @@ def get_city_by_id(request, city_id: UUID4):
         return get_object_or_404(City, id=city_id)
     except City.DoesNotExist:
         return 404, {'message': 'City not found.'}
+
+
