@@ -53,7 +53,7 @@ def get_city(request, city_id: UUID4):
         return 404, {'message': 'City not found.'}
 
 
-@country_controller.get('/cites/{country_id}', response={
+@country_controller.get('/cites/{country_name}', response={
     200: List[City2],
     404: MessageOut
 })
@@ -88,5 +88,4 @@ def get_city_by_id(request, city_id: UUID4):
         return get_object_or_404(City, id=city_id)
     except City.DoesNotExist:
         return 404, {'message': 'City not found.'}
-
 
