@@ -137,80 +137,108 @@ def remove_favorite_place(request, place_id: UUID4):
 
 review_controller = Router(tags=['Reviews'])
 
+@review_controller.get("/reviews", response={200: List[ReviewSchema]})
+def get_reviews(
+    request,
+    entity_type: str ,
+    place_id: UUID4 = None ,
+    company_id: UUID4 = None ,
+):
 
-@review_controller.get('/reviews/{place_id}', response={
-    200: List[ReviewsSchema],
-    404: MessageOut
-})
-def get_reviews_by_place(request, place_id: UUID4, user_id: UUID4):
-    try:
-        reviews = Reviews.objects.filter(place_id=place_id)
+    if entity_type not in ["place", "company"]:
+        return response(status.HTTP_400_BAD_REQUEST, {"message": "Invalid entity_type."})
 
-        if not reviews.exists():
-            return 404, {'message': 'No reviews found for the specified place.'}
+    filters = {"entity_type": entity_type}
 
-        if user_review := reviews.filter(user_id=user_id).first():
-            # If the user has a review, put it at the beginning of the list
-            reviews = [user_review] + [review for review in reviews if review != user_review]
-        else:
-            reviews = reviews.order_by('-created')
+    if place_id:
+        filters["place_id"] = place_id
 
-        return reviews
+    if company_id:
+        filters["company_id"] = company_id
 
-    except Reviews.DoesNotExist:
-        return 404, {'message': 'Place not found.'}
+    reviews = Reviews.objects.filter(**filters)
+    review_list = [{"id": review.id, "user_id": review.user_id,
+                    "place_id": review.place_id, "company_id": review.company_id,
+                    "entity_type": review.entity_type, "comment": review.comment, "rating": review.rating}
+                   for review in reviews]
 
+    return review_list
 
-@review_controller.post('/', response={200: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
-def create_review(request, review_data: ReviewsIn, place_id: UUID4):
+@review_controller.post('/add', response={200: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
+def add_review(request, review_data: ReviewsIn,place_id: UUID4 = None, company_id: UUID4 = None,entity_type: str = None):
     user = request.auth
-
     try:
-        place = PlaceMixin.objects.get(id=place_id)
+        if entity_type == "place":
+            place = PlaceMixin.objects.get(id=place_id)
+            review = Reviews.objects.create(
+                user=user,
+                place=place,
+                entity_type=entity_type,
+                comment=review_data.comment,
+                rating=review_data.rating
+            )
+            return response(status.HTTP_200_OK, ReviewSchema.from_orm(review))
+        elif entity_type == "company":
+            company = Company.objects.get(id=company_id)
+            review = Reviews.objects.create(
+                user=user,
+                company=company,
+                entity_type=entity_type,
+                comment=review_data.comment,
+                rating=review_data.rating
+            )
+            return response(status.HTTP_200_OK, ReviewSchema.from_orm(review))
+        else:
+            return response(status.HTTP_400_BAD_REQUEST, {"message": "Invalid entity_type."})
     except PlaceMixin.DoesNotExist:
         return 404, {'message': 'Place not found.'}
-
-    review = Reviews.objects.create(
-        user=user,
-        place=place,
-        comment=review_data.comment,
-        rating=review_data.rating
-    )
-    return response(status.HTTP_200_OK, review)
+    except Company.DoesNotExist:
+        return 404, {'message': 'Company not found.'}
 
 
-@review_controller.delete('/remove', response={200: MessageOut, 404: MessageOut}, auth=AuthBearer())
-def delete_review(request, review_id: UUID4):
+@review_controller.delete("/delete", response={200: MessageOut, 403: MessageOut}, auth=AuthBearer())
+def delete_review(
+    request,
+    review_id: UUID4
+):
     user = request.auth
-
     try:
         review = Reviews.objects.get(id=review_id)
+        if user == review.user:
+            review.delete()
+            return response(status.HTTP_200_OK, {"message": "Review deleted successfully."})
+        else:
+            return response(status.HTTP_403_FORBIDDEN, {"message": "You are not allowed to delete this review."})
+
     except Reviews.DoesNotExist:
         return 404, {'message': 'Review not found.'}
-    print(review.user, user)
-    if review.user != user:
-        return 403, {'message': 'You are not allowed to delete this review.'}
-
-    review.delete()
-    return response(status.HTTP_200_OK, {'message': 'Review deleted successfully.'})
 
 
-@review_controller.post(('/comments/{comment_id}/report'), response={200: MessageOut, 404: MessageOut},
-                        auth=AuthBearer())
-def report_comment(request, comment_id: UUID4):
+@review_controller.post("/report", response={200: MessageOut, 404: MessageOut}, auth=AuthBearer())
+def report_review(
+    request,
+    review_id: UUID4
+):
     user = request.auth
-
     try:
-        comment = Reviews.objects.get(id=comment_id)
+        review = Reviews.objects.get(id=review_id)
+
+        # Check if the user is the author of the review or has appropriate permissions to report
+        if user == review.user:
+            return response(status.HTTP_403_FORBIDDEN, {"message": "You cannot report your own review."})
+
+        # Check if the review is already reported
+        if review.reported:
+            return response(status.HTTP_200_OK, {"message": "Review has already been reported."})
+
+        # Mark the review as reported
+        review.reported = True
+        review.save()
+
+        return response(status.HTTP_200_OK, {"message": "Review reported successfully."})
+
     except Reviews.DoesNotExist:
-        return 404, {'message': 'Comment not found.'}
-
-    if comment.user == user:
-        return 403, {'message': 'You are not allowed to report your own comment.'}
-
-    comment.reported = True
-    comment.save()
-    return response(status.HTTP_200_OK, {'message': 'Comment reported successfully.'})
+        return 404, {'message': 'Review not found.'}
 
 
 search_controller = Router(tags=['Search'])

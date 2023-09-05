@@ -12,15 +12,17 @@ class Country(Entity):
         EGYPT = 'EGYPT', 'مصر'
         SAUDI_ARABIA = 'SAUDI_ARABIA', 'السعودية'
         UNITED_ARAB_EMIRATES = 'UNITED_ARAB_EMIRATES', 'الامارات العربية المتحدة'
-        SYRIA = 'SYRIA', 'سورية'
+        SYRIA = 'SYRIA', 'سوريا'
         LEBANON = 'LEBANON', 'لبنان'
         IRAN = 'IRAN', 'ايران'
         TUNISIA = 'TUNISIA', 'تونس'
         OMAN = 'OMAN', 'عمان'
         MALAYSIA = 'MALAYSIA', 'ماليزيا'
-        BALI = 'BALI', 'بالي'
         GEORGIA = 'GEORGIA', 'جورجيا'
         AZERBAIJAN = 'AZERBAIJAN', 'اذربيجان'
+        ARMENIA = 'ARMENIA', 'ارمينيا'
+        SRILANKA = 'SRILANKA', 'سيريلانكا'
+        INDONESIA = 'INDONESIA', 'اندونيسيا'
 
     country_name = models.CharField('اسم الدولة', max_length=50, unique=True, choices=CountryChoices.choices,
                                     default=CountryChoices.IRAQ)

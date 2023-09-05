@@ -82,19 +82,20 @@ class PlaceMixinSchema(Schema):
     data: List[PlaceMixinOut]
 
 
-class ReviewsSchema(Schema):
+class ReviewSchema(Schema):
     id: UUID4
-    user: AccountOut
-    place_id: UUID4
-    comment: Optional[str]
+    user_id: UUID4
+    place_id: UUID4 = None
+    company_id: UUID4 = None
+    entity_type: str
+    comment: str
     rating: int
 
 
 class ReviewsIn(Schema):
     comment: Optional[str]
     rating: int
-    entity_id: UUID4
-    entity_type: str
+
 
 
 class AdvertisementSchema(Schema):

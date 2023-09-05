@@ -153,6 +153,8 @@ class EmailAccount(AbstractUser, Entity):
 
 class AppDetails(Entity):
     app_version = models.CharField('رقم الاصدار التطبيق', max_length=100)
+    android_link = models.CharField('رابط التطبيق للاندرويد', max_length=255)
+    ios_link = models.CharField('رابط التطبيق للايفون', max_length=255)
 
     def __str__(self):
         return self.app_version
