@@ -140,9 +140,10 @@ review_controller = Router(tags=['Reviews'])
 @review_controller.get("/reviews", response={200: List[ReviewSchema]})
 def get_reviews(
     request,
-    entity_type: str ,
-    place_id: UUID4 = None ,
-    company_id: UUID4 = None ,
+    entity_type: str,
+    place_id: UUID4 = None,
+    company_id: UUID4 = None,
+    user_id: UUID4 = None
 ):
 
     if entity_type not in ["place", "company"]:
@@ -157,12 +158,40 @@ def get_reviews(
         filters["company_id"] = company_id
 
     reviews = Reviews.objects.filter(**filters)
-    review_list = [{"id": review.id, "user_id": review.user_id,
-                    "place_id": review.place_id, "company_id": review.company_id,
-                    "entity_type": review.entity_type, "comment": review.comment, "rating": review.rating}
-                   for review in reviews]
+
+    review_list = []
+
+    if user_id:
+        user_review = Reviews.objects.filter(user_id=user_id).first()
+        if user_review:
+            user_review_data = {
+                "id": user_review.id,
+                "user_id": user_review.user_id,
+                "place_id": user_review.place_id,
+                "company_id": user_review.company_id,
+                "entity_type": user_review.entity_type,
+                "comment": user_review.comment,
+                "rating": user_review.rating,
+            }
+            review_list.append(user_review_data)
+
+    # Order the remaining reviews by 'created' in descending order
+    other_reviews = reviews.exclude(user_id=user_id).order_by('-created')
+
+    for review in other_reviews:
+        review_data = {
+            "id": review.id,
+            "user_id": review.user_id,
+            "place_id": review.place_id,
+            "company_id": review.company_id,
+            "entity_type": review.entity_type,
+            "comment": review.comment,
+            "rating": review.rating,
+        }
+        review_list.append(review_data)
 
     return review_list
+
 
 @review_controller.post('/add', response={200: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
 def add_review(request, review_data: ReviewsIn,place_id: UUID4 = None, company_id: UUID4 = None,entity_type: str = None):

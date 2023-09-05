@@ -14,6 +14,8 @@ from place.schemas import AdvertisementSchema, RecommendedPlacesOut, LatestPlace
 
 class CountrySchema2(Schema):
     app_version: str = None
+    ios_link: str = None
+    android_link: str = None
     country_id: UUID4 = None
     country_name: str
     cities: List[CityOut]
@@ -41,7 +43,9 @@ class CountrySchema2(Schema):
             recommended_places=[RecommendedPlacesOut.from_orm(place) for place in country.get_recommended_places],
             offers=[OfferSchema.from_orm(offer) for offer in country.get_offers],
             companies_with_cities=companies_with_cities,
-            app_version=AppDetails.from_orm(account.models.AppDetails.objects.first()).app_version
+            app_version=AppDetails.from_orm(account.models.AppDetails.objects.first()).app_version,
+            ios_link=AppDetails.from_orm(account.models.AppDetails.objects.first()).ios_link,
+            android_link=AppDetails.from_orm(account.models.AppDetails.objects.first()).android_link,
         )
 
 class CitySchema2(Schema):

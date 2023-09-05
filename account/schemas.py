@@ -71,5 +71,6 @@ class ChangePassword(Schema):
 
 class AppDetails(Schema):
     app_version: str = None
-
+    android_link: str = None
+    ios_link: str = None
 
