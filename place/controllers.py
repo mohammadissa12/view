@@ -354,12 +354,33 @@ def get_trips_by_company(request, company_id: UUID4):
 })
 def get_companies_by_city_name(request, city_name: str):
     try:
+        # Fetch companies queryset (multiple companies)
         companies = Company.get_companies_by_city_name(city_name)
 
         if not companies.exists():
             return 404, {'message': 'No companies found for the specified city.'}
 
-        return  response(status.HTTP_200_OK, [CompanyOut.from_orm(company) for company in companies])
+        # Create a list of CompanyOut instances
+        company_out_list = []
+        for company in companies:
+            # Retrieve the associated SocialMedia data for each company
+            social_media = company.get_social_media
+            # Create a CompanyOut instance
+            company_out = CompanyOut(
+                id=company.id,
+                city=CityOut.from_orm(company.city),
+                company_name=company.company_name,
+                image=company.image_url,
+                company_description=company.company_description,
+                longitude=company.longitude,
+                latitude=company.latitude,
+                social_media=social_media,
+                average_rating=company.average_rating,
+                review_count=company.review_count,
+            )
+            company_out_list.append(company_out)
+
+        return response(status.HTTP_200_OK, company_out_list)
 
     except Company.DoesNotExist:
         return 404, {'message': 'Company not found.'}
@@ -521,3 +542,14 @@ def get_merchant_place_images(request):
         return response(status.HTTP_200_OK, [PlaceImageOut.from_orm(image) for image in place.place_images])
     except PlaceMixin.DoesNotExist:
         return 404, {'message': 'Place not found.'}
+
+
+#return social media of company
+@merchant_controller.get('/company/social_media', response={200: SocialMediaSchema, 404: MessageOut})
+def get_company_social_media(request, company_id: UUID4):
+    try:
+        company = Company.objects.get(id=company_id)
+        print(company.social_media_company)
+        return response(status.HTTP_200_OK, SocialMediaSchema.from_orm(company.social_media_company))
+    except Company.DoesNotExist:
+        return 404, {'message': 'Company not found.'}

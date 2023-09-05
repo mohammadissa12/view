@@ -146,7 +146,7 @@ class PlaceMixin(Entity):
 class SocialMedia(Entity):
     place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True,
                                  blank=True)
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='social_media', null=True,
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='social_media_company', null=True,
                                 blank=True)
     facebook = models.CharField('فيسبوك', null=True, blank=True, max_length=50)
     instagram = models.CharField('انستغرام', null=True, blank=True, max_length=50)
@@ -363,9 +363,9 @@ class Company(Entity):
     @property
     def get_social_media(self):
         try:
-            return self.social_media
+            return self.social_media_company
         except SocialMedia.DoesNotExist:
-            return None
+            return SocialMedia()
 
     @property
     def image_url(self):

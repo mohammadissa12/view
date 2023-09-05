@@ -84,7 +84,7 @@ class PlaceMixinSchema(Schema):
 
 class ReviewSchema(Schema):
     id: UUID4
-    user_id: UUID4
+    user: AccountOut
     place_id: UUID4 = None
     company_id: UUID4 = None
     entity_type: str
@@ -153,7 +153,6 @@ class CompanyOut(Schema):
 
     @staticmethod
     def from_orm(company: Company):
-        is_available = company.get_social_media
         return CompanyOut(
             id=company.id,
             city=CityOut.from_orm(company.city),
@@ -162,7 +161,7 @@ class CompanyOut(Schema):
             company_description=company.company_description,
             longitude=company.longitude,
             latitude=company.latitude,
-            social_media=is_available,
+            social_media=company.get_social_media,
             average_rating=company.average_rating,
             review_count=company.review_count,
         )
