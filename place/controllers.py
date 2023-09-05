@@ -166,7 +166,7 @@ def get_reviews(
         if user_review:
             user_review_data = {
                 "id": user_review.id,
-                "user_id": user_review.user_id,
+                "user": user_review.user,
                 "place_id": user_review.place_id,
                 "company_id": user_review.company_id,
                 "entity_type": user_review.entity_type,
@@ -181,7 +181,7 @@ def get_reviews(
     for review in other_reviews:
         review_data = {
             "id": review.id,
-            "user_id": review.user_id,
+            "user": review.user,
             "place_id": review.place_id,
             "company_id": review.company_id,
             "entity_type": review.entity_type,

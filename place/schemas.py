@@ -84,7 +84,7 @@ class PlaceMixinSchema(Schema):
 
 class ReviewSchema(Schema):
     id: UUID4
-    user: AccountOut
+    user:AccountOut
     place_id: UUID4 = None
     company_id: UUID4 = None
     entity_type: str
