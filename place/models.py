@@ -144,9 +144,9 @@ class PlaceMixin(Entity):
 
 
 class SocialMedia(Entity):
-    place = models.OneToOneField(PlaceMixin, on_delete=models.CASCADE, related_name='social_media', null=True,
+    place = models.OneToOneField(PlaceMixin, on_delete=models.SET_NULL, related_name='social_media', null=True,
                                  blank=True)
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='social_media_company', null=True,
+    company = models.ForeignKey('Company', on_delete=models.SET_NULL, related_name='social_media_company', null=True,
                                 blank=True)
     facebook = models.CharField('فيسبوك', null=True, blank=True, max_length=50)
     instagram = models.CharField('انستغرام', null=True, blank=True, max_length=50)
@@ -177,6 +177,12 @@ class SocialMedia(Entity):
             available_apps.append(self.SOCIAL_MEDIA_APPS['whatsapp'])
         return available_apps
 
+    @property
+    def get_social_media_company(self):
+        try:
+            return self.company
+        except SocialMedia.DoesNotExist:
+            return SocialMedia()
 
 class Images(Entity):
     image = models.ImageField('الصورة', upload_to='images/')

@@ -137,7 +137,7 @@ def remove_favorite_place(request, place_id: UUID4):
 
 review_controller = Router(tags=['Reviews'])
 
-@review_controller.get("/reviews", response={200: List[ReviewSchema]})
+@review_controller.get("/reviews", response={200: List[ReviewSchema],400:MessageOut})
 def get_reviews(
     request,
     entity_type: str,
@@ -148,6 +148,9 @@ def get_reviews(
 
     if entity_type not in ["place", "company"]:
         return response(status.HTTP_400_BAD_REQUEST, {"message": "Invalid entity_type."})
+
+    if place_id is None and company_id is None:
+        return response(status.HTTP_400_BAD_REQUEST, {"message": "Either place_id or company_id should be provided."})
 
     filters = {"entity_type": entity_type}
 
@@ -335,7 +338,7 @@ def get_trips_by_company(request, company_id: UUID4):
             latitude=company.latitude,
             longitude=company.longitude,
             company_description=company.company_description,
-            social_media=company.social_media,
+            social_media=company.social_media_company,
         )
 
         company_with_trips_out = CompanyWithTripsOut(
@@ -431,6 +434,7 @@ def add_place_by_merchant(request, place_data: PlaceCreate):
     )
 
     social_media = SocialMedia.objects.create(
+
         facebook=place_data.facebook,
         instagram=place_data.instagram,
         telegram=place_data.telegram,
