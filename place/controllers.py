@@ -383,14 +383,16 @@ def get_companies_by_city_name(request, city_name: str):
                 'whatsapp': company.social_media_company.values_list('whatsapp', flat=True).first(),
             }
 
-            # Create SocialMediaSchema
-            social = SocialMediaSchema(
-                facebook=social_media_links['facebook'] or None,
-                instagram=social_media_links['instagram'] or None,
-                telegram=social_media_links['telegram'] or None,
-                whatsapp=social_media_links['whatsapp'] or None,
-                is_available=[key for key, value in social_media_links.items() if value]
-            )
+            # Create SocialMediaSchema if any social media information is available
+            social = None
+            if any(social_media_links.values()):
+                social = SocialMediaSchema(
+                    facebook=social_media_links['facebook'] or None,
+                    instagram=social_media_links['instagram'] or None,
+                    telegram=social_media_links['telegram'] or None,
+                    whatsapp=social_media_links['whatsapp'] or None,
+                    is_available=[key for key, value in social_media_links.items() if value]
+                )
 
             company_out = CompanyOut(
                 id=company.id,
@@ -400,7 +402,7 @@ def get_companies_by_city_name(request, city_name: str):
                 company_description=company.company_description,
                 longitude=company.longitude,
                 latitude=company.latitude,
-                social_media=social,
+                social_media=social,  # Assign the social object
                 average_rating=company.average_rating,
                 review_count=company.review_count,
             )
