@@ -145,7 +145,6 @@ def get_reviews(
     company_id: UUID4 = None,
     user_id: UUID4 = None
 ):
-
     if entity_type not in ["place", "company"]:
         return response(status.HTTP_400_BAD_REQUEST, {"message": "Invalid entity_type."})
 
@@ -153,19 +152,16 @@ def get_reviews(
         return response(status.HTTP_400_BAD_REQUEST, {"message": "Either place_id or company_id should be provided."})
 
     filters = {"entity_type": entity_type}
-
     if place_id:
         filters["place_id"] = place_id
-
     if company_id:
         filters["company_id"] = company_id
-
     reviews = Reviews.objects.filter(**filters)
 
     review_list = []
 
-    if user_id:
-        user_review = Reviews.objects.filter(user_id=user_id).first()
+    if user_id and place_id:
+        user_review = Reviews.objects.filter(user_id=user_id, place_id=place_id).first()
         if user_review:
             user_review_data = {
                 "id": user_review.id,
@@ -177,10 +173,8 @@ def get_reviews(
                 "rating": user_review.rating,
             }
             review_list.append(user_review_data)
-
     # Order the remaining reviews by 'created' in descending order
     other_reviews = reviews.exclude(user_id=user_id).order_by('-created')
-
     for review in other_reviews:
         review_data = {
             "id": review.id,
