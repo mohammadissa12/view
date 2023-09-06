@@ -377,18 +377,18 @@ def get_companies_by_city_name(request, city_name: str):
         company_out_list = []
         for company in companies:
             social_media_links = {
-                'facebook': company.social_media_company.values_list('facebook', flat=True)[0],
-                'instagram': company.social_media_company.values_list('instagram', flat=True)[0],
-                'telegram': company.social_media_company.values_list('telegram', flat=True)[0],
-                'whatsapp': company.social_media_company.values_list('whatsapp', flat=True)[0],
+                'facebook': company.social_media_company.values_list('facebook', flat=True).first(),
+                'instagram': company.social_media_company.values_list('instagram', flat=True).first(),
+                'telegram': company.social_media_company.values_list('telegram', flat=True).first(),
+                'whatsapp': company.social_media_company.values_list('whatsapp', flat=True).first(),
             }
 
             # Create SocialMediaSchema
             social = SocialMediaSchema(
-                facebook=social_media_links['facebook'],
-                instagram=social_media_links['instagram'],
-                telegram=social_media_links['telegram'],
-                whatsapp=social_media_links['whatsapp'],
+                facebook=social_media_links['facebook'] or None,
+                instagram=social_media_links['instagram'] or None,
+                telegram=social_media_links['telegram'] or None,
+                whatsapp=social_media_links['whatsapp'] or None,
                 is_available=[key for key, value in social_media_links.items() if value]
             )
 
@@ -410,7 +410,6 @@ def get_companies_by_city_name(request, city_name: str):
 
     except Company.DoesNotExist:
         return 404, {'message': 'Company not found.'}
-
 
 merchant_controller = Router(tags=['Merchants'])
 
