@@ -186,8 +186,9 @@ def get_reviews(
             "rating": review.rating,
         }
         review_list.append(review_data)
-
-    return review_list
+    if not review_list:
+        return response(status.HTTP_400_BAD_REQUEST, {"message": "No reviews found."})
+    return response(status.HTTP_200_OK, review_list)
 
 
 @review_controller.post('/add', response={200: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
@@ -300,7 +301,6 @@ def search_places(request, country_id: UUID4, search: str, city_id: UUID4 = None
 
 trip_controller = Router(tags=['Trips'])
 
-
 @trip_controller.get('/company/{company_id}', response={
     200: CompanyWithTripsOut,
     404: MessageOut
@@ -324,6 +324,21 @@ def get_trips_by_company(request, company_id: UUID4):
             )
             trip_detail_out_list.append(trip_detail_out)
 
+        social_media_links = {
+            'facebook': company.social_media_company.values_list('facebook', flat=True)[0],
+            'instagram': company.social_media_company.values_list('instagram', flat=True)[0],
+            'telegram': company.social_media_company.values_list('telegram', flat=True)[0],
+            'whatsapp': company.social_media_company.values_list('whatsapp', flat=True)[0],
+        }
+
+        social = SocialMediaSchema(
+            facebook=social_media_links['facebook'],
+            instagram=social_media_links['instagram'],
+            telegram=social_media_links['telegram'],
+            whatsapp=social_media_links['whatsapp'],
+            is_available=[key for key, value in social_media_links.items() if value]  # Add is_available
+        )
+
         company_out = CompanyOut(
             id=company.id,
             city=CityOut.from_orm(company.city),
@@ -332,7 +347,9 @@ def get_trips_by_company(request, company_id: UUID4):
             latitude=company.latitude,
             longitude=company.longitude,
             company_description=company.company_description,
-            social_media=company.social_media_company,
+            social_media=social,  # Use the social media schema
+            average_rating=company.average_rating,
+            review_count=company.review_count,
         )
 
         company_with_trips_out = CompanyWithTripsOut(
@@ -357,12 +374,24 @@ def get_companies_by_city_name(request, city_name: str):
         if not companies.exists():
             return 404, {'message': 'No companies found for the specified city.'}
 
-        # Create a list of CompanyOut instances
         company_out_list = []
         for company in companies:
-            # Retrieve the associated SocialMedia data for each company
-            social_media = company.get_social_media
-            # Create a CompanyOut instance
+            social_media_links = {
+                'facebook': company.social_media_company.values_list('facebook', flat=True)[0],
+                'instagram': company.social_media_company.values_list('instagram', flat=True)[0],
+                'telegram': company.social_media_company.values_list('telegram', flat=True)[0],
+                'whatsapp': company.social_media_company.values_list('whatsapp', flat=True)[0],
+            }
+
+            # Create SocialMediaSchema
+            social = SocialMediaSchema(
+                facebook=social_media_links['facebook'],
+                instagram=social_media_links['instagram'],
+                telegram=social_media_links['telegram'],
+                whatsapp=social_media_links['whatsapp'],
+                is_available=[key for key, value in social_media_links.items() if value]
+            )
+
             company_out = CompanyOut(
                 id=company.id,
                 city=CityOut.from_orm(company.city),
@@ -371,7 +400,7 @@ def get_companies_by_city_name(request, city_name: str):
                 company_description=company.company_description,
                 longitude=company.longitude,
                 latitude=company.latitude,
-                social_media=social_media,
+                social_media=social,
                 average_rating=company.average_rating,
                 review_count=company.review_count,
             )
@@ -541,13 +570,3 @@ def get_merchant_place_images(request):
     except PlaceMixin.DoesNotExist:
         return 404, {'message': 'Place not found.'}
 
-
-#return social media of company
-@merchant_controller.get('/company/social_media', response={200: SocialMediaSchema, 404: MessageOut})
-def get_company_social_media(request, company_id: UUID4):
-    try:
-        company = Company.objects.get(id=company_id)
-        print(company.social_media_company)
-        return response(status.HTTP_200_OK, SocialMediaSchema.from_orm(company.social_media_company))
-    except Company.DoesNotExist:
-        return 404, {'message': 'Company not found.'}

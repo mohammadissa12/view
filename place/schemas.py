@@ -16,6 +16,8 @@ class SocialMediaSchema(Schema):
     is_available: List[str] = None
 
 
+
+
 class PlaceImageOut(Schema):
     id: UUID4
     image: str
@@ -153,6 +155,27 @@ class CompanyOut(Schema):
 
     @staticmethod
     def from_orm(company: Company):
+        def social_media():
+            SOCIAL_MEDIA_APPS = {
+                'facebook': 'facebook',
+                'instagram': 'instagram',
+                'telegram': 'telegram',
+                'whatsapp': 'whatsapp',
+            }
+
+            facebook = company.social_media_company.values_list('facebook', flat=True)
+            instagram = company.social_media_company.values_list('instagram', flat=True)
+            telegram = company.social_media_company.values_list('telegram', flat=True)
+            whatsapp = company.social_media_company.values_list('whatsapp', flat=True)
+            is_available = {
+                'facebook': facebook if facebook else None,
+                'instagram': instagram if instagram else None,
+                'telegram': telegram if telegram else None,
+                'whatsapp': whatsapp if whatsapp else None,
+            }
+            return facebook
+
+
         return CompanyOut(
             id=company.id,
             city=CityOut.from_orm(company.city),
@@ -161,7 +184,7 @@ class CompanyOut(Schema):
             company_description=company.company_description,
             longitude=company.longitude,
             latitude=company.latitude,
-            social_media=company.get_social_media,
+            social_media=social_media,
             average_rating=company.average_rating,
             review_count=company.review_count,
         )
