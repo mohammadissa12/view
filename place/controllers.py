@@ -207,36 +207,47 @@ def get_reviews(
     return response(status.HTTP_200_OK, review_list)
 
 
-@review_controller.post('/add', response={200: ReviewsIn, 404: MessageOut}, auth=AuthBearer())
+@review_controller.post('/add', response={200: ReviewsIn, 404: MessageOut,400:MessageOut}, auth=AuthBearer())
 def add_review(request, review_data: ReviewsIn,place_id: UUID4 = None, company_id: UUID4 = None,entity_type: str = None):
-    user = request.auth
-    try:
-        if entity_type == "place":
-            place = PlaceMixin.objects.get(id=place_id)
-            review = Reviews.objects.create(
-                user=user,
-                place=place,
-                entity_type=entity_type,
-                comment=review_data.comment,
-                rating=review_data.rating
-            )
-            return response(status.HTTP_200_OK, ReviewSchema.from_orm(review))
-        elif entity_type == "company":
-            company = Company.objects.get(id=company_id)
-            review = Reviews.objects.create(
-                user=user,
-                company=company,
-                entity_type=entity_type,
-                comment=review_data.comment,
-                rating=review_data.rating
-            )
-            return response(status.HTTP_200_OK, ReviewSchema.from_orm(review))
-        else:
-            return response(status.HTTP_400_BAD_REQUEST, {"message": "Invalid entity_type."})
-    except PlaceMixin.DoesNotExist:
-        return 404, {'message': 'Place not found.'}
-    except Company.DoesNotExist:
-        return 404, {'message': 'Company not found.'}
+        user = request.auth
+        try:
+            existing_review = None
+            if entity_type == "place":
+                existing_review = Reviews.objects.filter(user=user, place_id=place_id, entity_type=entity_type).first()
+            elif entity_type == "company":
+                existing_review = Reviews.objects.filter(user=user, company_id=company_id,
+                                                         entity_type=entity_type).first()
+
+            if existing_review:
+                return response(400, {"message": "You have already reviewed this entity."})
+            if entity_type == "place":
+                place = PlaceMixin.objects.get(id=place_id)
+                review = Reviews.objects.create(
+                    user=user,
+                    place=place,
+                    entity_type=entity_type,
+                    comment=review_data.comment,
+                    rating=review_data.rating
+                )
+                return response(status.HTTP_200_OK, ReviewSchema.from_orm(review))
+            elif entity_type == "company":
+                company = Company.objects.get(id=company_id)
+                review = Reviews.objects.create(
+                    user=user,
+                    company=company,
+                    entity_type=entity_type,
+                    comment=review_data.comment,
+                    rating=review_data.rating
+                )
+                return response(status.HTTP_200_OK, ReviewSchema.from_orm(review))
+            else:
+                return response(status.HTTP_400_BAD_REQUEST, {"message": "Invalid entity_type."})
+        except PlaceMixin.DoesNotExist:
+            return 404, {'message': 'Place not found.'}
+        except Company.DoesNotExist:
+            return 404, {'message': 'Company not found.'}
+
+
 
 
 @review_controller.delete("/delete", response={200: MessageOut, 403: MessageOut}, auth=AuthBearer())
