@@ -175,7 +175,21 @@ def get_reviews(
                 "rating": user_review.rating,
             }
             review_list.append(user_review_data)
-    # Order the remaining reviews by 'created' in descending order
+
+    if user_id and company_id:
+        user_review = Reviews.objects.filter(user_id=user_id, company_id=company_id).first()
+        if user_review:
+            user_review_data = {
+                "id": user_review.id,
+                "user": user_review.user,
+                "place_id": user_review.place_id,
+                "company_id": user_review.company_id,
+                "entity_type": user_review.entity_type,
+                "comment": user_review.comment,
+                "rating": user_review.rating,
+            }
+            review_list.append(user_review_data)
+
     other_reviews = reviews.exclude(user_id=user_id).order_by('-created')
     for review in other_reviews:
         review_data = {
