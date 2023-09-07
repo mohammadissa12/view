@@ -83,12 +83,14 @@ def get_nearest_places(request, place_id: UUID4):
     except PlaceMixin.DoesNotExist:
         return 404, {'message': 'Place not found.'}
 
-    # Get the list of nearest places
     nearest_places = specific_place.get_nearest_places()
+    if nearest_places:
+        return response(status.HTTP_200_OK, nearest_places)
 
-    # Convert the nearest places to the PlaceMixinOut schema
     nearest_places_output = [PlaceMixinOut.from_orm(place) for place in nearest_places]
 
+    if not nearest_places_output:
+        return 404, {'message': 'No nearest places found.'}
     return response(status.HTTP_200_OK, nearest_places_output)
 
 favorite_places_controller = Router(tags=['favorite places'])
