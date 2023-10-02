@@ -35,7 +35,7 @@
         $carousel.on('slide.bs.carousel', function (e) {
 
             FixSelectorHeight();
-            // call resize in change place after tab switch
+            // call resize in change view after tab switch
             window.dispatchEvent(new Event('resize'));
 
             if (e.relatedTarget.dataset.hasOwnProperty("label")) {
@@ -68,7 +68,7 @@
         $('a', $tabs).on('shown.bs.tab', function (e) {
 
             FixSelectorHeight();
-            // call resize in change place after tab switch
+            // call resize in change view after tab switch
             window.dispatchEvent(new Event('resize'));
 
             e.preventDefault();
@@ -99,7 +99,7 @@
         $collapsible.on('shown.bs.collapse', function (e) {
 
             FixSelectorHeight();
-            // call resize in change place after tab switch
+            // call resize in change view after tab switch
             window.dispatchEvent(new Event('resize'));
 
             if (history.pushState) {

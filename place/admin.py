@@ -60,11 +60,9 @@ class CountryFilter(admin.SimpleListFilter):
 
 
 admin.site.register(Advertisement)
-admin.site.register(LatestPlaces)
 admin.site.register(RecommendedPlaces)
-admin.site.register(FavoritePlaces)
 admin.site.register(Offers)
-
+admin.site.register(Reviews)
 
 
 
@@ -91,10 +89,6 @@ class TripDetailsModelAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TripDetails, TripDetailsModelAdmin)
-
-'''place_type'''
-admin.site.register(PlaceType)
-admin.site.register(PlaceSubType)
 
 
 @admin.register(PlaceMixin)

@@ -23,6 +23,7 @@ class Country(Entity):
         ARMENIA = 'ARMENIA', 'ارمينيا'
         SRILANKA = 'SRILANKA', 'سيريلانكا'
         INDONESIA = 'INDONESIA', 'اندونيسيا'
+        THAILAND = 'THAILAND', 'تايلند'
 
     country_name = models.CharField('اسم الدولة', max_length=50, unique=True, choices=CountryChoices.choices,
                                     default=CountryChoices.IRAQ)
@@ -37,7 +38,6 @@ class Country(Entity):
     @property
     def get_cities(self):
         return self.country_city.all()
-
 
     @property
     def get_advertisements(self):
@@ -60,14 +60,12 @@ class Country(Entity):
         return self.company.all()
 
 
-
-
 class City(Entity):
     city_name = models.CharField('اسم المدينة', max_length=50, unique=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='country_city')
 
     def __str__(self):
-        return f'{self.city_name}-{self.country.country_name}'
+        return f'{self.city_name}'
 
     class Meta:
         verbose_name = 'المدينة'
@@ -85,8 +83,6 @@ class City(Entity):
     def get_high_rated(self):
         return self.city_places.filter(reviews__isnull=False).distinct().order_by('-reviews__rating')[:15]
 
-
     @property
     def get_company(self):
         return self.company.all()
-

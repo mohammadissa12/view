@@ -70,7 +70,7 @@
 
     function updateRelatedObjectLinks(triggeringLink) {
         const $this = $(triggeringLink);
-        const siblings = $this.nextAll('.place-related, .change-related, .delete-related');
+        const siblings = $this.nextAll('.view-related, .change-related, .delete-related');
         if (!siblings.length) {
             return;
         }

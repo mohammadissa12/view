@@ -242,8 +242,6 @@ class Advertisement(Entity):
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان',
                               related_name='advertisements', blank=True, null=True)
     image = models.ImageField('الصورة', upload_to='images')
-    title = models.CharField('العنوان', max_length=50)
-    short_description = models.CharField('الوصف المختصر', max_length=100)
     url = models.URLField('الرابط', max_length=100, blank=True, null=True)
     start_date = models.DateField('تاريخ البداية')
     end_date = models.DateField('تاريخ النهاية', )
