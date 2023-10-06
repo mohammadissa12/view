@@ -24,7 +24,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['138.201.244.182','www.viewiraq.de','viewiraq.de','viewiraq','https://viewiraq.de','http://viewiraq.de','0.0.0.0']
+ALLOWED_HOSTS = ['138.201.244.182','view.viewiraq.de','0.0.0.0','http://viewiraq.com/','viewiraq.com','https://viewiraq.com']
 
 # Application definition
 
