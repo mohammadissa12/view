@@ -19,6 +19,11 @@ class CountryAdmin(admin.ModelAdmin):
     search_fields = ['country_name']
     list_filter = ['country_name']
 
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_editor
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_deleter
 
 class CountryFilter(admin.SimpleListFilter):
     title = 'Country'
@@ -52,3 +57,9 @@ class CityAdmin(admin.ModelAdmin):
             # Return empty list when creating a new city
             return []
         return super().get_inline_instances(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_editor
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_deleter

@@ -23,8 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = ['138.201.244.182','view.viewiraq.de','0.0.0.0','http://viewiraq.com/','viewiraq.com','https://viewiraq.com']
+DEBUG = False
+ALLOWED_HOSTS = ['138.201.244.182','https://view.viewiraq.de','view.viewiraq.de','0.0.0.0','viewiraq.com','https://viewiraq.com']
+CSRF_TRUSTED_ORIGINS=['https://view.viewiraq.de','https://viewiraq.com']
 
 # Application definition
 
@@ -109,9 +110,6 @@ JAZZMIN_UI_TWEAKS = {
     "theme": "darkly",
 }
 
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 
 LANGUAGE_CODE = 'en-us'
 
@@ -129,7 +127,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-SILKY_PYTHON_PROFILER = True
 
 
 

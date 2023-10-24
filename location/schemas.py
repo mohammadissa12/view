@@ -5,8 +5,8 @@ from pydantic import UUID4
 
 
 class CountryOut(Schema):
-    id: UUID4
-    country_name: str
+    id: UUID4 = None
+    country_name: str = None
 
 
 class CountrySchema(Schema):
@@ -24,7 +24,7 @@ class CountrySchema(Schema):
 class CityOut(Schema):
     id: UUID4
     city_name: str
-    country: CountryOut
+    country: CountryOut = None
 
 
 class CitySchema(Schema):

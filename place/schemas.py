@@ -102,7 +102,7 @@ class ReviewsIn(Schema):
 
 class AdvertisementSchema(Schema):
     id: UUID4
-    country: CountryOut
+    country: CountryOut = None
     image: str
     title: str
     short_description: str

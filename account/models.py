@@ -1,6 +1,6 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser, UserManager, PermissionsMixin
 import datetime
 from django.utils import timezone
 
@@ -38,6 +38,8 @@ class EmailAccountManager(UserManager):
         user.is_admin = True
         user.is_staff = True
         user.is_superuser = True
+        user.is_deleter = True
+        user.is_editor = True
         user.save(using=self._db)
         return user
 
@@ -60,6 +62,8 @@ class EmailAccountManager(UserManager):
         return user
 
 
+
+
 class EmailAccount(AbstractUser, Entity):
     username = models.NOT_PROVIDED
     first_name = models.CharField('الاسم الاول', max_length=255)
@@ -77,6 +81,9 @@ class EmailAccount(AbstractUser, Entity):
     is_merchant = models.BooleanField(default=False)
     merchant_expiry_date = models.DateField('تاريخ انتهاء العضوية', blank=True, null=True)
     is_free = models.BooleanField(default=False)
+
+    is_deleter = models.BooleanField(default=False)
+    is_editor = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
@@ -113,7 +120,7 @@ class EmailAccount(AbstractUser, Entity):
     @property
     def image_url(self):
         return (
-            f"https://moamel.pythonanywhere.com{self.image.url}"
+            f"https://view.viewiraq.de{self.image.url}"
             if self.image
             else None
         )
@@ -126,29 +133,9 @@ class EmailAccount(AbstractUser, Entity):
         return None
 
     def has_perm(self, perm, obj=None):
-        if self.is_superuser:
+        # Active superusers have all permissions.
+        if self.is_active and self.is_superuser:
             return True
-
-        # Give all permissions to is_admin except delete
-        if self.is_admin and perm != 'delete':
-            return True
-
-        if self.is_staff and perm in ['account.EmailAccount', 'view_user', 'view_merchant', 'change_merchant',
-                                      'view_profile', 'change_profile', ]:
-            return True
-
-        return super().has_perm(perm, obj)
-
-    def has_module_perms(self, app_label):
-        if self.is_superuser or self.is_admin:
-            return True
-
-        # Define your custom module-level permission checks for staff users
-        if self.is_staff and app_label == 'account':
-            return True
-
-        return super().has_module_perms(app_label)
-
 
 
 class AppDetails(Entity):

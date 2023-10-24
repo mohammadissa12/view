@@ -45,7 +45,7 @@ class PlaceSubType(Entity):
 
 class PlaceMixin(Entity):
     user = models.ForeignKey(EmailAccount, on_delete=models.CASCADE, related_name='user_places', null=True, blank=True)
-    place_type = models.ForeignKey(PlaceType, on_delete=models.CASCADE, related_name='places', )
+    place_type = models.ForeignKey(PlaceType, on_delete=models.CASCADE, related_name='place_type')
     type = models.ForeignKey(PlaceSubType, on_delete=models.CASCADE, related_name='place_sub_type_places', null=True,
                              blank=True)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, related_name='city_places')
@@ -193,7 +193,7 @@ class Images(Entity):
 
     @property
     def image_url(self):
-        domain = "https://moamel.pythonanywhere.com"  # Replace this with your actual domain
+        domain = "https://view.viewiraq.de"  # Replace this with your actual domain
         return f"{domain}{self.image.url}"
 
     class Meta:
@@ -238,7 +238,8 @@ class Advertisement(Entity):
                                 related_name='advertisements', null=True, blank=True)
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, verbose_name='المدينة',
                              related_name='advertisements', blank=True, null=True)
-
+    title = models.CharField('العنوان', max_length=50)
+    short_description = models.CharField('الوصف المختصر', max_length=100)
     place = models.ForeignKey(PlaceMixin, on_delete=models.CASCADE, verbose_name='المكان',
                               related_name='advertisements', blank=True, null=True)
     image = models.ImageField('الصورة', upload_to='images')
@@ -339,9 +340,9 @@ class Company(Entity):
                                 related_name='company')
     city = models.ForeignKey('location.City', on_delete=models.CASCADE, verbose_name='المدينة', related_name='company',
                              blank=True, null=True)
-    company_name = models.CharField('اسم الشركة', max_length=50)
+    company_name = models.CharField('اسم الشركة', max_length=100)
     image = models.ImageField('الصورة', upload_to='images')
-    company_description = models.CharField('وصف الشركة', max_length=100)
+    company_description = models.CharField('وصف الشركة', max_length=1000)
     location = PlainLocationField(based_fields=['city'], zoom=13, default='33.3152, 44.3661',
                                   verbose_name='موقع الشركة')
 
@@ -373,7 +374,7 @@ class Company(Entity):
 
     @property
     def image_url(self):
-        domain = "https://moamel.pythonanywhere.com"
+        domain = "https://view.viewiraq.de"
         return f"{domain}{self.image.url}"
 
     def get_average_rating_company(self) -> float:
@@ -398,8 +399,8 @@ class Company(Entity):
 class TripDetails(Entity):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='الشركة', related_name='trip_details')
     short_description = models.CharField('الوصف المختصر', max_length=100, null=True, blank=True)
-    trip_name = models.CharField('اسم الرحلة', max_length=50)
-    trip_details = models.TextField('تفاصيل الرحلة', max_length=256)
+    trip_name = models.CharField('اسم الرحلة', max_length=100)
+    trip_details = models.TextField('تفاصيل الرحلة', max_length=5000)
 
     def __str__(self):
         return f'{self.trip_name}'
@@ -430,7 +431,7 @@ class TripImages(Entity):
 
     @property
     def image_url(self):
-        domain = "https://moamel.pythonanywhere.com"  # Replace this with your actual domain
+        domain = "https://view.viewiraq.de"  # Replace this with your actual domain
         return f"{domain}{self.image.url}"
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None, *args, **kwargs):

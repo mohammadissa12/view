@@ -77,7 +77,7 @@ class City(Entity):
 
     @property
     def get_latest_places(self):
-        return self.latest_places.all()[:20]
+        return self.latest_places.order_by('-created')[:20]
 
     @property
     def get_high_rated(self):
