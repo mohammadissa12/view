@@ -77,11 +77,11 @@ class City(Entity):
 
     @property
     def get_latest_places(self):
-        return self.latest_places.order_by('-created')[:20]
+        return self.latest_places.order_by('-created')[:40]
 
     @property
     def get_high_rated(self):
-        return self.city_places.filter(reviews__isnull=False).distinct().order_by('-reviews__rating')[:15]
+        return self.city_places.filter(reviews__isnull=False).distinct().order_by('-reviews__rating')[:40]
 
     @property
     def get_company(self):

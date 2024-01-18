@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Delete Account Confirmation</title>
+   <style>
+       body {
+           font-family: Arial, sans-serif;
+       }
+       .container {
+           width: 80%;
+           margin: auto;
+           overflow: hidden;
+       }
+       .header {
+           background: #f8f9fa;
+           text-align: center;
+           padding: 20px;
+       }
+       .content {
+           margin-top: 20px;
+           padding: 20px;
+           border: 1px solid #ddd;
+       }
+       input[type="submit"] {
+           background: #dc3545;
+           color: white;
+           padding: 10px 20px;
+           border: none;
+           cursor: pointer;
+       }
+       input[type="submit"]:hover {
+           background: #c82333;
+       }
+   </style>
+</head>
+<body>
+   <div class="container">
+       <div class="header">
+           <h1>Delete Account</h1>
+       </div>
+       <div class="content">
+           <p>Are you sure you want to delete "{{ object.first_name }} {{ object.last_name }} ({{ object.phone_number }})"?</p>
+            <form method="post" action="{% url 'account_delete' %}">
+               {% csrf_token %}
+               <input type="submit" value="Confirm">
+           </form>
+       </div>
+   </div>
+</body>
+</html>

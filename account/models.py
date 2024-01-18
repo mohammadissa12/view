@@ -132,6 +132,11 @@ class EmailAccount(AbstractUser, Entity):
             return f"{remaining_days.days}"
         return None
 
+    def merchant_expired(self):
+        if self.is_merchant and self.merchant_expiry_date:
+            return self.merchant_expiry_date < datetime.date.today()
+        return False
+
     def has_perm(self, perm, obj=None):
         # Active superusers have all permissions.
         if self.is_active and self.is_superuser:
@@ -139,7 +144,9 @@ class EmailAccount(AbstractUser, Entity):
 
 
 class AppDetails(Entity):
-    app_version = models.CharField('رقم الاصدار التطبيق', max_length=100)
+    app_version = models.CharField(' رقم الاصدار التطبيق ', max_length=100)
+    app_version_apple = models.CharField(' apple رقم الاصدار التطبيق ', max_length=100)
+
     android_link = models.CharField('رابط التطبيق للاندرويد', max_length=255)
     ios_link = models.CharField('رابط التطبيق للايفون', max_length=255)
 

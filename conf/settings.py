@@ -30,7 +30,7 @@ CSRF_TRUSTED_ORIGINS=['https://view.viewiraq.de','https://viewiraq.com']
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
+    # 'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -105,10 +106,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-JAZZMIN_UI_TWEAKS = {
-
-    "theme": "darkly",
-}
 
 
 LANGUAGE_CODE = 'en-us'
@@ -125,8 +122,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'account.EmailAccount'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'  # Changed to URL path
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')  # Assuming BASE_DIR is correctly set
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 

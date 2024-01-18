@@ -37,7 +37,7 @@ def signup(request, payload: AccountSignupIn):
         if user := EmailAccount.objects.create_user(
                 first_name=payload.first_name,
                 last_name=payload.last_name,
-                email=payload.email,
+                email=payload.email or None,
                 phone_number=payload.phone_number,
                 password=payload.password1,
         ):
