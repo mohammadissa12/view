@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from decouple import config
-
+import random
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,12 +20,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+chars = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!?@#$%^&*()"
+size = 50
+SECRET_KEY = "".join(random.sample(chars, size))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-ALLOWED_HOSTS = ['138.201.244.182','https://view.viewiraq.de','view.viewiraq.de','0.0.0.0','viewiraq.com','https://viewiraq.com']
-CSRF_TRUSTED_ORIGINS=['https://view.viewiraq.de','https://viewiraq.com']
+ALLOWED_HOSTS = ['http://194.5.157.103','194.5.157.103']
+CSRF_TRUSTED_ORIGINS=['http://194.5.157.103']
 
 # Application definition
 
@@ -124,7 +126,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'  # Changed to URL path
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')  # Assuming BASE_DIR is correctly set
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 
