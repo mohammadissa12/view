@@ -26,8 +26,8 @@ SECRET_KEY = "".join(random.sample(chars, size))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-ALLOWED_HOSTS = ['http://194.5.157.103','194.5.157.103']
-CSRF_TRUSTED_ORIGINS=['http://194.5.157.103']
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS=['*']
 
 # Application definition
 

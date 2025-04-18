@@ -3,7 +3,7 @@ autopep8==2.0.2
 Django==4.2.3
 django-jazzmin==2.6.0
 django-location-field==2.7.1
-django-ninja==0.21.0
+django-ninja
 dnspython==2.3.0
 ecdsa==0.18.0
 email-validator==2.0.0.post2
@@ -12,7 +12,7 @@ idna==3.4
 Pillow
 pyasn1==0.5.0
 pycodestyle==2.10.0
-pydantic==1.10.7
+pydantic
 python-decouple==3.8
 python-jose==3.3.0
 rsa==4.9
